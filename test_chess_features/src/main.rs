@@ -11,10 +11,21 @@ fn main() {
     //     }
     // }
     // print_bitboard(mask_rook_attack(SquareLabels::D4 as usize));
-    for x in 0..64 {
-        print_bitboard(mask_rook_attack(x));
-        println!("{}", x);
-    }
+    let mut blocking_pieces: u64 = 0u64;
+    blocking_pieces |= (1u64 << SquareLabels::C4 as usize);
+    blocking_pieces |= (1u64 << SquareLabels::D7 as usize);
+    blocking_pieces |= (1u64 << SquareLabels::D2 as usize);
+    blocking_pieces |= (1u64 << SquareLabels::E4 as usize);
+    print_bitboard(blocking_pieces);
+
+    print_bitboard(mask_rook_attack_with_blocking_pieces(
+        SquareLabels::D4 as usize,
+        blocking_pieces,
+    ));
+    // for x in 0..64 {
+    //     print_bitboard(mask_bishop_attack_with_blocking_pieces(x, 0u64));
+    //     println!("{}", x);
+    // }
     // println!("{:?}", bishop_attack_table);
 
     // let mut bb = 0u64;
@@ -187,6 +198,62 @@ fn mask_bishop_attack(square_index: usize) -> u64 {
     bishop_attacks
 }
 
+fn mask_bishop_attack_with_blocking_pieces(square_index: usize, blocking_pieces: u64) -> u64 {
+    let mut bishop_attacks = 0u64;
+    let tmp: i8 = square_index.try_into().unwrap();
+    let target_rank: i8 = tmp / 8;
+    let target_file: i8 = tmp % 8;
+
+    let mut r: i8;
+    let mut f: i8;
+
+    r = target_rank + 1;
+    f = target_file + 1;
+    while r <= 7 && f <= 7 {
+        bishop_attacks |= 1u64 << (r * 8 + f);
+        if 1u64 << (r * 8 + f) & blocking_pieces != 0 {
+            break;
+        }
+        r += 1;
+        f += 1;
+    }
+
+    r = target_rank - 1;
+    f = target_file + 1;
+    while r >= 0 && f <= 7 {
+        bishop_attacks |= 1u64 << (r * 8 + f);
+        if (1u64 << (r * 8 + f) & blocking_pieces) != 0 {
+            break;
+        }
+        r -= 1;
+        f += 1;
+    }
+
+    r = target_rank + 1;
+    f = target_file - 1;
+    while r <= 7 && f >= 0 {
+        bishop_attacks |= 1u64 << (r * 8 + f);
+        if 1u64 << (r * 8 + f) & blocking_pieces != 0 {
+            break;
+        }
+        r += 1;
+        f -= 1;
+    }
+
+    r = target_rank - 1;
+    f = target_file - 1;
+    while r >= 0 && f >= 0 {
+        bishop_attacks |= 1u64 << (r * 8 + f);
+        if 1u64 << (r * 8 + f) & blocking_pieces != 0 {
+            break;
+        }
+        r -= 1;
+        f -= 1;
+    }
+
+    bishop_attacks
+}
+
 ///Magic, https://www.chessprogramming.org/Magic_Bitboards
 fn mask_rook_attack(square_index: usize) -> u64 {
     let mut rook_attacks = 0u64;
@@ -218,6 +285,53 @@ fn mask_rook_attack(square_index: usize) -> u64 {
     f = target_file - 1;
     while f >= 1 {
         rook_attacks |= 1u64 << (target_rank * 8 + f);
+        f -= 1;
+    }
+
+    rook_attacks
+}
+fn mask_rook_attack_with_blocking_pieces(square_index: usize, blocking_pieces: u64) -> u64 {
+    let mut rook_attacks = 0u64;
+    let tmp: i8 = square_index.try_into().unwrap();
+    let target_rank: i8 = tmp / 8;
+    let target_file: i8 = tmp % 8;
+
+    let mut r: i8;
+    let mut f: i8;
+
+    r = target_rank + 1;
+    while r <= 7 {
+        rook_attacks |= 1u64 << (r * 8 + target_file);
+        if 1u64 << (r * 8 + target_file) & blocking_pieces != 0 {
+            break;
+        }
+        r += 1;
+    }
+
+    r = target_rank - 1;
+    while r >= 0 {
+        rook_attacks |= 1u64 << (r * 8 + target_file);
+        if 1u64 << (r * 8 + target_file) & blocking_pieces != 0 {
+            break;
+        }
+        r -= 1;
+    }
+
+    f = target_file + 1;
+    while f <= 7 {
+        rook_attacks |= 1u64 << (target_rank * 8 + f);
+        if 1u64 << (target_rank * 8 + f) & blocking_pieces != 0 {
+            break;
+        }
+        f += 1;
+    }
+
+    f = target_file - 1;
+    while f >= 0 {
+        rook_attacks |= 1u64 << (target_rank * 8 + f);
+        if 1u64 << (target_rank * 8 + f) & blocking_pieces != 0 {
+            break;
+        }
         f -= 1;
     }
 
