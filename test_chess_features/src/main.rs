@@ -2,87 +2,94 @@ use rand::Rng;
 use std::num::Wrapping;
 
 fn main() {
-    // let pawn_attack_table: [[u64; 64]; 2] = generate_pawn_attack_tables();
-    // let knight_attack_table: [u64; 64] = generate_knight_attack_tables();
-    // let king_attack_table: [u64; 64] = generate_king_attack_tables();
-    let mut occupancy = 0u64;
-    occupancy |= (1u64 << SquareLabels::C4 as usize);
-    occupancy |= (1u64 << SquareLabels::C4 as usize);
-    occupancy |= (1u64 << SquareLabels::C4 as usize);
-    let bishop_masks: [u64; 64] = generate_bishop_masks();
-    let bishop_attack_table: [[u64; 64]; 512] = generate_bishop_attack_tables();
-    println!(
-        "{}",
-        get_bishop_attacks(
-            SquareLabels::D4 as usize,
-            occupancy,
-            bishop_masks,
-            bishop_attack_table
-        )
-    );
+    unsafe {
+        // print_bitboard(get_random_u32_number() as u64);
+        // print_bitboard(get_random_u32_number() as u64);
+        // print_bitboard(get_random_u64_number() as u64);
+        // print_bitboard(get_random_u64_number_with_fewer_nonzero() as u64);
 
-    // let mut attack: u64 = mask_bishop_attack(SquareLabels::D4 as usize);
-    // for x in 4000..4095 {
-    //     let o: u64 = occupancy(x, count_bits(attack), attack);
-    //     print_bitboard(o);
-    // }
+        PAWN_ATTACKS = generate_pawn_attack_tables();
+        KNIGHT_ATTACKS = generate_knight_attack_tables();
+        KING_ATTACKS = generate_king_attack_tables();
+        generate_bishop_masks();
+        generate_rook_masks();
+        generate_bishop_attack_tables();
+        generate_rook_attack_tables();
 
-    // for x in 0..8 {
-    //     for y in 0..8 {
-    //         // let square_index = x * 8 + y;
-    //         // print!("{},", count_bits(mask_rook_attack(square_index)))
-    //     }
-    //     println!("")
-    // }
-    // print_bitboard(get_random_u64_number_with_fewer_nonzero());
-    // print_bitboard(mask_rook_attack(SquareLabels::D4 as usize));
-    // let mut blocking_pieces: u64 = 0u64;
-    // blocking_pieces |= (1u64 << SquareLabels::C4 as usize);
-    // blocking_pieces |= (1u64 << SquareLabels::D7 as usize);
-    // blocking_pieces |= (1u64 << SquareLabels::D2 as usize);
-    // blocking_pieces |= (1u64 << SquareLabels::E4 as usize);
-    // print_bitboard(blocking_pieces);
-    // println!(
-    //     "{:?}",
-    //     Squares[get_index_of_least_significant_bit(blocking_pieces)]
-    // );
-    // println!(
-    //     "{}",
-    //     CONVERT_INDEX_COORDINATE[get_index_of_least_significant_bit(blocking_pieces)]
-    // );
+        let mut occupancy = 0u64;
+        occupancy |= (1u64 << SquareLabels::F2 as usize);
+        occupancy |= (1u64 << SquareLabels::C3 as usize);
+        occupancy |= (1u64 << SquareLabels::C5 as usize);
+        occupancy |= (1u64 << SquareLabels::G4 as usize);
+        let thin = get_bishop_attacks(SquareLabels::D4 as usize, occupancy);
+        print_bitboard(thin);
+        println!("\n");
+        let thing = get_rook_attacks(SquareLabels::C4 as usize, occupancy);
+        print_bitboard(thing);
 
-    // println!("{}", count_bits(blocking_pieces));
-    // print_bitboard(mask_rook_attack_with_blocking_pieces(
-    //     SquareLabels::D4 as usize,
-    //     blocking_pieces,
-    // ));
-    // print_bitboard(mask_bishop_attack_with_blocking_pieces(x, 0u64));
-    // for square_index in 0..64 {
-    //     println!(
-    //         "{}u64,",
-    //         find_magic_number(
-    //             square_index,
-    //             ROOK_OCCUPANCY_BIT_COUNT[square_index],
-    //             Pieces::ROOK
-    //         )
-    //     );
-    // }
-    // println!("{:?}", bishop_attack_table);
+        // let mut attack: u64 = mask_bishop_attack(SquareLabels::D4 as usize);
+        // for x in 0..100 {
+        //     let o: u64 = set_occupancy(x, count_bits(attack), attack);
+        //     print_bitboard(o);
+        // }
 
-    // let mut bb = 0u64;
-    // for x in (1..9).rev() {
-    //     print!("\"A{}\",", x);
-    //     print!("\"B{}\",", x);
-    //     print!("\"C{}\",", x);
-    //     print!("\"D{}\",", x);
-    //     print!("\"E{}\",", x);
-    //     print!("\"F{}\",", x);
-    //     print!("\"G{}\",", x);
-    //     print!("\"H{}\",", x);
-    //     println!("");
-    // }
-    // println!("{}", bb);
-    // print_bitboard(bb)
+        // for x in 0..8 {
+        //     for y in 0..8 {
+        //         // let square_index = x * 8 + y;
+        //         // print!("{},", count_bits(mask_rook_attack(square_index)))
+        //     }
+        //     println!("")
+        // }
+        // print_bitboard(get_random_u64_number_with_fewer_nonzero());
+        // print_bitboard(mask_rook_attack(SquareLabels::D4 as usize));
+        // let mut blocking_pieces: u64 = 0u64;
+        // blocking_pieces |= (1u64 << SquareLabels::C4 as usize);
+        // blocking_pieces |= (1u64 << SquareLabels::D7 as usize);
+        // blocking_pieces |= (1u64 << SquareLabels::D2 as usize);
+        // blocking_pieces |= (1u64 << SquareLabels::E4 as usize);
+        // print_bitboard(blocking_pieces);
+        // println!(
+        //     "{:?}",
+        //     Squares[get_index_of_least_significant_bit(blocking_pieces)]
+        // );
+        // println!(
+        //     "{}",
+        //     CONVERT_INDEX_COORDINATE[get_index_of_least_significant_bit(blocking_pieces)]
+        // );
+
+        // println!("{}", count_bits(blocking_pieces));
+        // print_bitboard(mask_rook_attack_with_blocking_pieces(
+        //     SquareLabels::D4 as usize,
+        //     blocking_pieces,
+        // ));
+        // print_bitboard(mask_bishop_attack_with_blocking_pieces(x, 0u64));
+        // for square_index in 0..64 {
+        //     println!(
+        //         "{}u64,",
+        //         find_magic_number(
+        //             square_index,
+        //             BISHOP_OCCUPANCY_BIT_COUNT[square_index],
+        //             Pieces::BISHOP
+        //         )
+        //     );
+        // }
+        // println!("{:?}", bishop_attack_table);
+
+        // let mut bb = 0u64;
+        // for x in (1..9).rev() {
+        //     print!("\"A{}\",", x);
+        //     print!("\"B{}\",", x);
+        //     print!("\"C{}\",", x);
+        //     print!("\"D{}\",", x);
+        //     print!("\"E{}\",", x);
+        //     print!("\"F{}\",", x);
+        //     print!("\"G{}\",", x);
+        //     print!("\"H{}\",", x);
+        //     println!("");
+        // }
+        // println!("{}", bb);
+        // print_bitboard(bb)
+    }
 }
 
 const NOT_A: u64 = 18374403900871474942;
@@ -108,139 +115,164 @@ const ROOK_OCCUPANCY_BIT_COUNT: [usize; 64] = [
     11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12,
 ];
 
+/**
+I will shamelessly admit that these aren't my own magic numbers since i just could not get it to work, don't say i didn't try tho cuz god knows i sat till 3 am trying
+https://github.com/mvanthoor/rustic/blob/master/src/movegen/magics.rs
+*/
 const ROOK_MAGIC_NUMBERS: [u64; 64] = [
-    36037630228037648u64,
-    4774378559799033856u64,
-    149322495817191424u64,
-    153263141998823429u64,
-    8797286826048u64,
-    13582404589602818u64,
-    2308130004438876188u64,
-    579416239559589960u64,
-    2533858905949761u64,
-    35261752803361u64,
-    73202202823790592u64,
-    144150995755352064u64,
-    1163248669991895112u64,
-    288232592360079489u64,
-    9333710365164834816u64,
-    1128101094375436u64,
-    2305846376608563200u64,
-    1155182101051552904u64,
-    220677756264906784u64,
-    2305844108726370312u64,
-    2414356010916513954u64,
-    297312685794592002u64,
-    594475331750068608u64,
-    4755994720549732864u64,
-    19149095650460160u64,
-    36028801322319904u64,
-    141321704579072u64,
-    650923768561792u64,
-    71519795414016u64,
-    2308094895199388672u64,
-    4725050342322995200u64,
-    70437476368672u64,
-    864691128731959297u64,
-    9241949385319780632u64,
-    601725744451600u64,
-    149474482896240972u64,
-    18014398517903360u64,
-    2378050137120346114u64,
-    144256012537561124u64,
-    1154047408817045568u64,
-    1157993551783575561u64,
-    73746443898454016u64,
-    288265577777102848u64,
-    9223373205390516481u64,
-    297237575540679168u64,
-    13835339532544278533u64,
-    4415268323673u64,
-    2200147492864u64,
-    4503771426652544u64,
-    306247008044187852u64,
-    72409437792372000u64,
-    153141087620304896u64,
-    2306405961855926530u64,
-    6088886693707186179u64,
-    40532405597241376u64,
-    2344124707168583706u64,
-    583216289183467008u64,
-    144475914862870528u64,
-    2342197301402928424u64,
-    4512464574353412u64,
-    6931338893988990979u64,
-    162129655304849410u64,
-    319793046092776448u64,
-    90073710802911491u64,
+    324259448050975248u64,
+    162139001189302336u64,
+    4647750006529359880u64,
+    144121785691422736u64,
+    16176938657641660544u64,
+    9367489423970945072u64,
+    36051338366288384u64,
+    36029147746665088u64,
+    3518447965192208u64,
+    4614078830617822340u64,
+    9241949523864129664u64,
+    11540615780106252u64,
+    730287067600519297u64,
+    144819425575437312u64,
+    1225261127674627584u64,
+    40814017656160512u64,
+    594475700577118276u64,
+    283675082228259u64,
+    148058037853261952u64,
+    14411662294658320384u64,
+    2394186703782912u64,
+    1157847866488718336u64,
+    2306407062973841412u64,
+    4576167411597460u64,
+    2323857959626489888u64,
+    18860477004136448u64,
+    621497027752297522u64,
+    3027553647748714496u64,
+    9241953785514295424u64,
+    1970363492082688u64,
+    1729664285938024960u64,
+    4836870457972064321u64,
+    141012374650913u64,
+    4652253601601699840u64,
+    58687601506263040u64,
+    281543780081672u64,
+    1157433900411130112u64,
+    81628378934806544u64,
+    2310366730829959192u64,
+    2900476768907429780u64,
+    36558770110480u64,
+    9042384969023488u64,
+    180425597514743824u64,
+    5487636764434923528u64,
+    5766860422494879764u64,
+    9224498487624761348u64,
+    41702298761822218u64,
+    45599234000551940u64,
+    70370891935872u64,
+    19210671497487104u64,
+    387030266675328u64,
+    289215847808893056u64,
+    576469550545240192u64,
+    1153216449143113729u64,
+    9350715278336u64,
+    288521763922764288u64,
+    282782794268833u64,
+    595672521157161122u64,
+    436884352794689609u64,
+    9241667927690743809u64,
+    5188428314494240769u64,
+    1157988067282792450u64,
+    1152939243166828548u64,
+    4611967569673330817u64,
 ];
 
 const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
-    576461174284165120u64,
-    842090422529u64,
-    4785624362287108u64,
-    602772906967112u64,
-    9262788705200898576u64,
-    2306054252901957633u64,
-    288082787043330u64,
-    2456714146620805137u64,
-    81069745392370720u64,
-    79132539047905696u64,
-    2449958764848087200u64,
-    1152980878789083136u64,
-    9229001538028963488u64,
-    306808965881266176u64,
-    4621825718995649632u64,
-    1008948704494878784u64,
-    2395995354442006560u64,
-    9245995725618151488u64,
-    4644895466323977u64,
-    864691129998639113u64,
-    144467049649539108u64,
-    9511887186586244136u64,
-    36184927670902792u64,
-    4647930320262267073u64,
-    225399902149019652u64,
-    2310488170963271809u64,
-    145720759812488u64,
-    10380797424559084544u64,
-    4710835581792293408u64,
-    5375232u64,
-    4790606524317760u64,
-    37163493556368192u64,
-    1306659637776367624u64,
-    422212466119713u64,
-    144132780841241088u64,
-    1160820396143935617u64,
-    9223394323508527104u64,
-    2179760362797148160u64,
-    577204022163832992u64,
-    72057594643136528u64,
-    914804418019361u64,
-    9710927901442048u64,
-    282678641368064u64,
-    5209574190906081344u64,
-    126260287742410752u64,
-    5514740130816u64,
-    586031056199647632u64,
-    39878771397638u64,
-    9369761601508352128u64,
-    1164288290286731269u64,
-    4616225627664613376u64,
-    13979314393165512848u64,
-    9944230002009833608u64,
-    39706973438464u64,
-    153298379160420416u64,
-    844699909226496u64,
-    4611686568452162768u64,
-    72075195619346450u64,
-    288234783064990720u64,
-    4538801187889152u64,
-    4648700051182356528u64,
-    73791532469191808u64,
-    1155178819160244230u64,
-    225207469178101904u64,
+    2310454429704290569u64,
+    37163502750244928u64,
+    145330200115150856u64,
+    573953659699200u64,
+    9845999220824211456u64,
+    574016004032512u64,
+    10093699283674480640u64,
+    2306407060834902016u64,
+    2883575003184432136u64,
+    1747410678824308864u64,
+    9259405249167245312u64,
+    936784527773139074u64,
+    4629702641998381057u64,
+    201028145628315697u64,
+    4899992295377881088u64,
+    4630405483133404688u64,
+    153474299838154784u64,
+    2286992943744036u64,
+    434597432802681416u64,
+    865817269052115456u64,
+    9156750026475656u64,
+    599823317909770240u64,
+    4578375142474880u64,
+    2308525819264500224u64,
+    18596057879421451u64,
+    18331093560345096u64,
+    2305880392877736000u64,
+    56602859688444160u64,
+    5382084129205534724u64,
+    5767422822691897608u64,
+    283691220206592u64,
+    144398865845093376u64,
+    1163523824685120u64,
+    20267333288223264u64,
+    325489801822240u64,
+    4755836425302245636u64,
+    594475563668865152u64,
+    1162496335329427604u64,
+    9244765235704371236u64,
+    576667461564269056u64,
+    146371454722771202u64,
+    426679365288452u64,
+    13724105480340736u64,
+    1152922330050364928u64,
+    4620737202526097424u64,
+    1316476062695166464u64,
+    13981996823661781640u64,
+    12430506881068303489u64,
+    5193780677221351424u64,
+    426612797737280u64,
+    37445932288049152u64,
+    1171147012042137601u64,
+    504403227018657856u64,
+    4629845569785954560u64,
+    4686013077882208273u64,
+    1154056209263894528u64,
+    613054853085794304u64,
+    9025075185721408u64,
+    9571249324951568u64,
+    10999715432448u64,
+    290408795603472u64,
+    10664524198170591488u64,
+    5924513492108288u64,
+    90511840181764112u64,
 ];
+
+static mut PAWN_ATTACKS: [[u64; 64]; 2] = [[0u64; 64]; 2];
+static mut KNIGHT_ATTACKS: [u64; 64] = [0u64; 64];
+static mut KING_ATTACKS: [u64; 64] = [0u64; 64];
+
+static mut BISHOP_MASKS: [u64; 64] = [0u64; 64];
+static mut ROOK_MASKS: [u64; 64] = [0u64; 64];
+
+static mut BISHOP_ATTACKS: [[u64; 64]; 512] = [[0u64; 64]; 512];
+static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
+
+unsafe fn generate_bishop_masks() {
+    for square_index in 0..64 {
+        BISHOP_MASKS[square_index] = mask_bishop_attack(square_index);
+    }
+}
+unsafe fn generate_rook_masks() {
+    for square_index in 0..64 {
+        ROOK_MASKS[square_index] = mask_rook_attack(square_index);
+    }
+}
 
 fn print_bitboard(bb: u64) {
     for rank in 0..8 {
@@ -258,16 +290,25 @@ fn print_bitboard(bb: u64) {
         }
         println!("");
     }
-    println!("  A B C D E F G H\n");
+    println!("  A B C D E F G H");
+    print!("{}\n", bb);
 }
-
-fn get_random_u32_number() -> u32 {
+static mut SEED: u32 = 1804289383;
+unsafe fn get_random_u32_number() -> u32 {
     let mut rng = rand::thread_rng();
     let r: u32 = rng.gen();
     r
+    // let mut number = SEED;
+    // number ^= number << 13;
+    // number ^= number >> 17;
+    // number ^= number << 5;
+
+    // // update random number state
+    // SEED = number;
+    // number
 }
 ///get random u64 by u32, algorithm courtesy of Tord Romstad
-fn get_random_u64_number() -> u64 {
+unsafe fn get_random_u64_number() -> u64 {
     let r1: u64;
     let r2: u64;
     let r3: u64;
@@ -282,27 +323,33 @@ fn get_random_u64_number() -> u64 {
 }
 
 ///Courtesy of Tord Romstad
-fn get_random_u64_number_with_fewer_nonzero() -> u64 {
+unsafe fn get_random_u64_number_with_fewer_nonzero() -> u64 {
     return get_random_u64_number() & get_random_u64_number() & get_random_u64_number();
 }
 
-///this is the most convoluted thing every but it works great, courtesy of Tord Romstad
-fn find_magic_number(square_index: usize, bits: usize, bishop: usize) -> u64 {
+/**
+this is the most convoluted thing every but it works great, courtesy of Tord Romstad
+correction. It work great for generation illegal magic numbers
+don't know why, if you know why do enlighten tis humble mortal
+*/
+unsafe fn find_magic_number(square_index: usize, bit_count_in_mask: usize, piece: usize) -> u64 {
     let mut occupancies: [u64; 4096] = [0; 4096];
     let mut attacks: [u64; 4096] = [0; 4096];
     let mut used_attacks: [u64; 4096] = [0u64; 4096];
-    let attack_mask: u64 = if (bishop == Pieces::BISHOP) {
-        mask_bishop_attack(square_index)
+
+    let attack_mask: u64 = if (piece == Pieces::BISHOP) {
+        BISHOP_MASKS[square_index]
     } else {
-        mask_rook_attack(square_index)
+        ROOK_MASKS[square_index]
     };
 
-    let occupancy_indicies = 1 << bits;
+    let occupancy_indicies = 1 << bit_count_in_mask;
 
     let mut index = 0;
     while (index < occupancy_indicies) {
-        occupancies[index] = occupancy(index, bits, attack_mask);
-        attacks[index] = if (bishop == Pieces::BISHOP) {
+        occupancies[index] = set_occupancy(index, bit_count_in_mask, attack_mask);
+
+        attacks[index] = if (piece == Pieces::BISHOP) {
             mask_bishop_attack_with_blocking_pieces(square_index, occupancies[index])
         } else {
             mask_rook_attack_with_blocking_pieces(square_index, occupancies[index])
@@ -322,7 +369,10 @@ fn find_magic_number(square_index: usize, bits: usize, bishop: usize) -> u64 {
         let mut index = 0;
         let mut fail = 0;
         while (fail == 0 && index < occupancy_indicies) {
-            let magic_index = (occupancies[index] * magic_number) >> (64 - bits);
+            let magic_index: i32 = ((occupancies[index] * magic_number)
+                >> (64 - bit_count_in_mask))
+                .try_into()
+                .unwrap();
 
             let tmp: usize = magic_index.try_into().unwrap();
 
@@ -363,7 +413,7 @@ fn get_index_of_least_significant_bit(bb: u64) -> usize {
     return count_bits(bb ^ (bb - 1));
 }
 ///Generates an occupancy map depending on the given index/seed, bit_count and attack_mask, courtesy of https://www.chessprogramming.org/Magic_Bitboards
-fn occupancy(index: usize, bit_count_in_mask: usize, mut attack_mask: u64) -> u64 {
+fn set_occupancy(index: usize, bit_count_in_mask: usize, mut attack_mask: u64) -> u64 {
     let mut occupancy_map = 0u64;
 
     let mut count = 0;
@@ -684,46 +734,64 @@ fn generate_king_attack_tables() -> [u64; 64] {
     }
     king_attack_table
 }
-fn generate_bishop_masks() -> [u64; 64] {
-    let mut bishop_masks: [u64; 64] = [0; 64];
-    for x in 0..64 {
-        bishop_masks[x] = mask_bishop_attack(x);
-    }
-    bishop_masks
-}
-fn generate_bishop_attack_tables() -> [[u64; 64]; 512] {
-    let mut bishop_attacks: [[u64; 64]; 512] = [[0u64; 64]; 512];
-    let mut bishop_masks: [u64; 64] = [0u64; 64];
+
+unsafe fn generate_bishop_attack_tables() {
     for square_index in 0..64 {
-        bishop_masks[square_index] = mask_bishop_attack(square_index);
-        let attack_mask = bishop_masks[square_index];
+        let attack_mask = BISHOP_MASKS[square_index];
         let bit_count_in_mask = count_bits(attack_mask);
         let occupancy_indicies = (1 << bit_count_in_mask);
 
-        let index = 0;
+        let mut index = 0;
+
         while (index < occupancy_indicies) {
-            let occupancy = occupancy(index, bit_count_in_mask, attack_mask);
+            let occupancy = set_occupancy(index, bit_count_in_mask, attack_mask);
             let magic_index = (occupancy * BISHOP_MAGIC_NUMBERS[square_index])
                 >> (64 - BISHOP_OCCUPANCY_BIT_COUNT[square_index]);
             let tmp: usize = magic_index.try_into().unwrap();
-            bishop_attacks[square_index][tmp] =
+
+            BISHOP_ATTACKS[tmp][square_index] =
                 mask_bishop_attack_with_blocking_pieces(square_index, occupancy);
+            index += 1;
         }
     }
-    bishop_attacks
 }
-fn get_bishop_attacks(
-    square: usize,
-    occupancy: u64,
-    bishop_masks: [u64; 64],
-    bishop_attack_table: [[u64; 64]; 512],
-) -> u64 {
-    occupancy &= bishop_masks[square];
+
+unsafe fn get_bishop_attacks(square: usize, mut occupancy: u64) -> u64 {
+    occupancy &= BISHOP_MASKS[square];
     occupancy *= BISHOP_MAGIC_NUMBERS[square];
-    occupancy >>= 64 - BISHOP_OCCUPANCY_BIT_COUNT[square];
+    occupancy >>= (64 - BISHOP_OCCUPANCY_BIT_COUNT[square]);
 
     let tmp: usize = occupancy.try_into().unwrap();
-    return bishop_attack_table[square][tmp];
+    return BISHOP_ATTACKS[tmp][square];
+}
+unsafe fn generate_rook_attack_tables() {
+    for square_index in 0..64 {
+        let attack_mask = ROOK_MASKS[square_index];
+        let bit_count_in_mask = count_bits(attack_mask);
+        let occupancy_indicies = (1 << bit_count_in_mask);
+
+        let mut index = 0;
+
+        while (index < occupancy_indicies) {
+            let occupancy = set_occupancy(index, bit_count_in_mask, attack_mask);
+            let magic_index = (occupancy * ROOK_MAGIC_NUMBERS[square_index])
+                >> (64 - ROOK_OCCUPANCY_BIT_COUNT[square_index]);
+            let tmp: usize = magic_index.try_into().unwrap();
+
+            ROOK_ATTACKS[tmp][square_index] =
+                mask_rook_attack_with_blocking_pieces(square_index, occupancy);
+            index += 1;
+        }
+    }
+}
+
+unsafe fn get_rook_attacks(square: usize, mut occupancy: u64) -> u64 {
+    occupancy &= ROOK_MASKS[square];
+    occupancy *= ROOK_MAGIC_NUMBERS[square];
+    occupancy >>= (64 - ROOK_OCCUPANCY_BIT_COUNT[square]);
+
+    let tmp: usize = occupancy.try_into().unwrap();
+    return ROOK_ATTACKS[tmp][square];
 }
 
 pub struct Sides;
