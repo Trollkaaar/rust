@@ -3,29 +3,69 @@ use std::num::Wrapping;
 
 fn main() {
     unsafe {
-        // print_bitboard(get_random_u32_number() as u64);
-        // print_bitboard(get_random_u32_number() as u64);
-        // print_bitboard(get_random_u64_number() as u64);
-        // print_bitboard(get_random_u64_number_with_fewer_nonzero() as u64);
+        init();
 
-        PAWN_ATTACKS = generate_pawn_attack_tables();
-        KNIGHT_ATTACKS = generate_knight_attack_tables();
-        KING_ATTACKS = generate_king_attack_tables();
-        generate_bishop_masks();
-        generate_rook_masks();
-        generate_bishop_attack_tables();
-        generate_rook_attack_tables();
+        BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::B2 as usize);
+        BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::G6 as usize);
+        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::B3 as usize);
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B6 as usize);
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::C7 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B7 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F5 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::E2 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::A8 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::H2 as usize);
+        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::A2 as usize);
+        // print_bitboard(BITBOARDS[Pieces::pawn]);
+        // print_bitboard(PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]);
+        // print_bitboard(
+        //     (BITBOARDS[Pieces::pawn] & PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]),
+        // );
 
-        let mut occupancy = 0u64;
-        occupancy |= (1u64 << SquareLabels::F2 as usize);
-        occupancy |= (1u64 << SquareLabels::C3 as usize);
-        occupancy |= (1u64 << SquareLabels::C5 as usize);
-        occupancy |= (1u64 << SquareLabels::G4 as usize);
-        let thin = get_bishop_attacks(SquareLabels::D4 as usize, occupancy);
-        print_bitboard(thin);
-        println!("\n");
-        let thing = get_rook_attacks(SquareLabels::C4 as usize, occupancy);
-        print_bitboard(thing);
+        for x in 0..6 {
+            OCCUPANCIES_BITBOARDS[Sides::WHITE] |= BITBOARDS[x];
+            OCCUPANCIES_BITBOARDS[Sides::BLACK] |= BITBOARDS[x + 6];
+        }
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
+
+        // print_squares_under_attack(Sides::WHITE);
+        // print_bitboard(OCCUPANCIES_BITBOARDS[Sides::BOTH]);
+        // print_board();
+        // generate_moves();
+        let _move = encode_move(
+            SquareLabels::E3 as usize,
+            SquareLabels::E5 as usize,
+            Pieces::PAWN,
+            Pieces::KNIGHT,
+            1,
+            1,
+        );
+        let i = get_move_source(_move);
+        let x = get_move_target(_move);
+        let y = get_move_piece(_move);
+        let z = get_move_promoted(_move);
+        let xz = get_move_capture_flag(_move);
+        let xy = get_move_double_push_flag(_move);
+        println!("{}", CONVERT_INDEX_COORDINATE[i]);
+        println!("{}", CONVERT_INDEX_COORDINATE[x]);
+        println!("{}", ASCII_PIECES[y]);
+        println!("{}", ASCII_PIECES[z]);
+        println!("{}", xz);
+        println!("{}", xy);
+
+        // let mut occupancy = 0u64;
+        // occupancy |= (1u64 << SquareLabels::D6 as usize);
+        // occupancy |= (1u64 << SquareLabels::G4 as usize);
+        // occupancy |= (1u64 << SquareLabels::D2 as usize);
+        // occupancy |= (1u64 << SquareLabels::C4 as usize);
+        // let thin = get_queen_attacks(SquareLabels::D4 as usize, occupancy);
+        // print_bitboard(thin);
+        // println!("\n");
+        // let thing = get_rook_attacks(SquareLabels::C4 as usize, occupancy);
+        // print_bitboard(thing);
 
         // let mut attack: u64 = mask_bishop_attack(SquareLabels::D4 as usize);
         // for x in 0..100 {
@@ -91,6 +131,8 @@ fn main() {
         // print_bitboard(bb)
     }
 }
+
+const ASCII_PIECES: [char; 12] = ['P', 'B', 'N', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'];
 
 const NOT_A: u64 = 18374403900871474942;
 const NOT_AB: u64 = 18229723555195321596;
@@ -252,16 +294,487 @@ const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
     5924513492108288u64,
     90511840181764112u64,
 ];
-
 static mut PAWN_ATTACKS: [[u64; 64]; 2] = [[0u64; 64]; 2];
 static mut KNIGHT_ATTACKS: [u64; 64] = [0u64; 64];
 static mut KING_ATTACKS: [u64; 64] = [0u64; 64];
-
 static mut BISHOP_MASKS: [u64; 64] = [0u64; 64];
 static mut ROOK_MASKS: [u64; 64] = [0u64; 64];
-
 static mut BISHOP_ATTACKS: [[u64; 64]; 512] = [[0u64; 64]; 512];
 static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
+
+///Represent all pieces both sides, 6 * 2
+static mut BITBOARDS: [u64; 12] = [0u64; 12];
+
+///3 occupancy bbs, only black, only white, both
+static mut OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
+
+static mut SIDE: usize = 0;
+static mut SIDES: [&str; 2] = ["White", "Black"];
+
+unsafe fn init() {
+    PAWN_ATTACKS = generate_pawn_attack_tables();
+    KNIGHT_ATTACKS = generate_knight_attack_tables();
+    KING_ATTACKS = generate_king_attack_tables();
+    generate_bishop_masks();
+    generate_rook_masks();
+    generate_bishop_attack_tables();
+    generate_rook_attack_tables();
+}
+///largely inspired by https://github.com/jordanbray/chess, https://github.com/mkandalf/crust/tree/master/src and https://github.com/bluefeversoft/Vice_Chess_Engine/blob/master/Ch36.zip
+unsafe fn generate_moves() {
+    let mut source_sq: usize = 0;
+    let mut target_sq: usize = 0;
+    let mut _bitboard: u64 = 0;
+    let mut _attacks: u64 = 0;
+
+    for piece in 0..12 {
+        _bitboard = BITBOARDS[piece];
+
+        if SIDE == Sides::WHITE {
+            if piece == Pieces::PAWN {
+                while (_bitboard != 0) {
+                    source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                    target_sq = source_sq - 8;
+
+                    if ((target_sq > SquareLabels::A8 as usize)
+                        && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq)) == 0))
+                    {
+                        if (source_sq >= SquareLabels::A7 as usize
+                            && source_sq <= SquareLabels::H7 as usize)
+                        {
+                            println!(
+                                "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        } else {
+                            println!(
+                                "Push Pawn: {} -> {}",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+
+                            if ((source_sq >= SquareLabels::A2 as usize
+                                && source_sq <= SquareLabels::H2 as usize)
+                                && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq - 8))
+                                    == 0))
+                            {
+                                println!(
+                                    "MEGA PAWN RUSHUUUU: {} -> {}",
+                                    CONVERT_INDEX_COORDINATE[source_sq],
+                                    CONVERT_INDEX_COORDINATE[target_sq - 8]
+                                );
+                            }
+                        }
+                    }
+                    _attacks = PAWN_ATTACKS[SIDE][source_sq] & OCCUPANCIES_BITBOARDS[Sides::BLACK];
+
+                    while (_attacks != 0) {
+                        target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                        if (source_sq >= SquareLabels::A7 as usize
+                            && source_sq <= SquareLabels::H7 as usize)
+                        {
+                            println!(
+                                "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        } else {
+                            println!(
+                                "Capture Pawn: {} -> {}",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        }
+
+                        if (_attacks & (1u64 << target_sq) != 0) {
+                            _attacks ^= (1u64 << target_sq);
+                        } else {
+                            0;
+                        }
+                    }
+
+                    if (_bitboard & (1u64 << source_sq) != 0) {
+                        _bitboard ^= (1u64 << source_sq);
+                    } else {
+                        0;
+                    }
+                }
+            }
+        } else {
+            if piece == Pieces::pawn {
+                while (_bitboard != 0) {
+                    source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                    target_sq = source_sq + 8;
+
+                    if ((target_sq > SquareLabels::A8 as usize)
+                        && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq)) == 0))
+                    {
+                        if (source_sq >= SquareLabels::A2 as usize
+                            && source_sq <= SquareLabels::H2 as usize)
+                        {
+                            println!(
+                                "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        } else {
+                            println!(
+                                "Push Pawn: {} -> {}",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+
+                            if ((source_sq >= SquareLabels::A7 as usize
+                                && source_sq <= SquareLabels::H7 as usize)
+                                && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq + 8))
+                                    == 0))
+                            {
+                                println!(
+                                    "MEGA PAWN RUSHUUUU: {} -> {}",
+                                    CONVERT_INDEX_COORDINATE[source_sq],
+                                    CONVERT_INDEX_COORDINATE[target_sq + 8]
+                                );
+                            }
+                        }
+                    }
+                    _attacks = PAWN_ATTACKS[SIDE][source_sq] & OCCUPANCIES_BITBOARDS[Sides::WHITE];
+
+                    while (_attacks != 0) {
+                        target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                        if (source_sq >= SquareLabels::A2 as usize
+                            && source_sq <= SquareLabels::H2 as usize)
+                        {
+                            println!(
+                                "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        } else {
+                            println!(
+                                "Capture Pawn: {} -> {}",
+                                CONVERT_INDEX_COORDINATE[source_sq],
+                                CONVERT_INDEX_COORDINATE[target_sq]
+                            );
+                        }
+                        if (_attacks & (1u64 << target_sq) != 0) {
+                            _attacks ^= (1u64 << target_sq);
+                        } else {
+                            0;
+                        }
+                    }
+                    if (_bitboard & (1u64 << source_sq) != 0) {
+                        _bitboard ^= (1u64 << source_sq);
+                    } else {
+                        0;
+                    }
+                }
+            }
+        }
+        if (if (SIDE == Sides::WHITE) {
+            piece == Pieces::KNIGHT
+        } else {
+            piece == Pieces::knight
+        }) {
+            while (_bitboard != 0) {
+                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+                _attacks = KNIGHT_ATTACKS[source_sq]
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
+
+                while (_attacks != 0) {
+                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    } else {
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } & (1u64 << target_sq))
+                        == 0)
+                    {
+                        println!(
+                            "Piece Move: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    } else {
+                        println!(
+                            "Piece Capture: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    }
+
+                    if (_attacks & (1u64 << target_sq) != 0) {
+                        _attacks ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                }
+
+                if (_bitboard & (1u64 << source_sq) != 0) {
+                    _bitboard ^= (1u64 << source_sq);
+                } else {
+                    0;
+                }
+            }
+        }
+        if (if (SIDE == Sides::WHITE) {
+            piece == Pieces::BISHOP
+        } else {
+            piece == Pieces::bishop
+        }) {
+            while (_bitboard != 0) {
+                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+                _attacks = get_bishop_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
+
+                while (_attacks != 0) {
+                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    } else {
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } & (1u64 << target_sq))
+                        == 0)
+                    {
+                        println!(
+                            "Piece Move: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    } else {
+                        println!(
+                            "Piece Capture: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    }
+
+                    if (_attacks & (1u64 << target_sq) != 0) {
+                        _attacks ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                }
+
+                if (_bitboard & (1u64 << source_sq) != 0) {
+                    _bitboard ^= (1u64 << source_sq);
+                } else {
+                    0;
+                }
+            }
+        }
+        if (if (SIDE == Sides::WHITE) {
+            piece == Pieces::ROOK
+        } else {
+            piece == Pieces::rook
+        }) {
+            while (_bitboard != 0) {
+                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+                _attacks = get_rook_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
+
+                while (_attacks != 0) {
+                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    } else {
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } & (1u64 << target_sq))
+                        == 0)
+                    {
+                        println!(
+                            "Piece Move: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    } else {
+                        println!(
+                            "Piece Capture: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    }
+
+                    if (_attacks & (1u64 << target_sq) != 0) {
+                        _attacks ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                }
+
+                if (_bitboard & (1u64 << source_sq) != 0) {
+                    _bitboard ^= (1u64 << source_sq);
+                } else {
+                    0;
+                }
+            }
+        }
+        if (if (SIDE == Sides::WHITE) {
+            piece == Pieces::QUEEN
+        } else {
+            piece == Pieces::queen
+        }) {
+            while (_bitboard != 0) {
+                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+                _attacks = get_queen_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
+
+                while (_attacks != 0) {
+                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    } else {
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } & (1u64 << target_sq))
+                        == 0)
+                    {
+                        println!(
+                            "Piece Move: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    } else {
+                        println!(
+                            "Piece Capture: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    }
+
+                    if (_attacks & (1u64 << target_sq) != 0) {
+                        _attacks ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                }
+
+                if (_bitboard & (1u64 << source_sq) != 0) {
+                    _bitboard ^= (1u64 << source_sq);
+                } else {
+                    0;
+                }
+            }
+        }
+        if (if (SIDE == Sides::WHITE) {
+            piece == Pieces::KING
+        } else {
+            piece == Pieces::king
+        }) {
+            while (_bitboard != 0) {
+                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+                _attacks = (KING_ATTACKS[source_sq]
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    }));
+
+                while (_attacks != 0) {
+                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    } else {
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } & (1u64 << target_sq))
+                        == 0)
+                    {
+                        println!(
+                            "Piece Move: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    } else {
+                        println!(
+                            "Piece Capture: {} -> {}",
+                            CONVERT_INDEX_COORDINATE[source_sq],
+                            CONVERT_INDEX_COORDINATE[target_sq]
+                        );
+                    }
+
+                    if (_attacks & (1u64 << target_sq) != 0) {
+                        _attacks ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                }
+
+                if (_bitboard & (1u64 << source_sq) != 0) {
+                    _bitboard ^= (1u64 << source_sq);
+                } else {
+                    0;
+                }
+            }
+        }
+    }
+}
+
+///Thank god, https://www.youtube.com/watch?v=KQcArvyrbIo&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=24
+fn encode_move(
+    source: usize,
+    target: usize,
+    piece: usize,
+    promoted: usize,
+    capture: usize,
+    double: usize,
+) -> usize {
+    return source
+        | (target << 6)
+        | (piece << 12)
+        | (promoted << 16)
+        | (capture << 20)
+        | (double << 21);
+}
+
+fn get_move_source(_move: usize) -> usize {
+    return (_move & 0x3f);
+}
+
+fn get_move_target(_move: usize) -> usize {
+    return ((_move & 0xfc0) >> 6);
+}
+
+fn get_move_piece(_move: usize) -> usize {
+    return ((_move & 0xf000) >> 12);
+}
+
+fn get_move_promoted(_move: usize) -> usize {
+    return ((_move & 0xf0000) >> 16);
+}
+fn get_move_capture_flag(_move: usize) -> usize {
+    return if (_move & 0xf100000) != 0 { 1 } else { 0 };
+}
+
+fn get_move_double_push_flag(_move: usize) -> usize {
+    return if ((_move & 0xf200000) != 0) { 1 } else { 0 };
+}
 
 unsafe fn generate_bishop_masks() {
     for square_index in 0..64 {
@@ -293,6 +806,48 @@ fn print_bitboard(bb: u64) {
     println!("  A B C D E F G H");
     print!("{}\n", bb);
 }
+unsafe fn print_squares_under_attack(side: usize) {
+    for rank in 0..8 {
+        print!("{} ", 8 - rank);
+        for file in 0..8 {
+            let square_index = (rank << 3) + file;
+            print!("{} ", is_square_under_attack(square_index, side));
+        }
+        println!("");
+    }
+    println!("  A B C D E F G H");
+}
+
+unsafe fn print_board() {
+    println!("");
+    for rank in 0..8 {
+        print!("{} ", 8 - rank);
+        for file in 0..8 {
+            let square_index = (rank << 3) + file;
+
+            let mut piece = 12;
+
+            for i in 0..12 {
+                if ((BITBOARDS[i] & (1u64 << square_index)) != 0) {
+                    piece = i;
+                }
+            }
+
+            print!(
+                "{} ",
+                if piece == 12 {
+                    '.'
+                } else {
+                    ASCII_PIECES[piece]
+                }
+            );
+        }
+        println!("");
+    }
+    println!("  A B C D E F G H");
+    println!("Current turn: {}", SIDES[SIDE]);
+}
+
 static mut SEED: u32 = 1804289383;
 unsafe fn get_random_u32_number() -> u32 {
     let mut rng = rand::thread_rng();
@@ -794,10 +1349,83 @@ unsafe fn get_rook_attacks(square: usize, mut occupancy: u64) -> u64 {
     return ROOK_ATTACKS[tmp][square];
 }
 
+unsafe fn get_queen_attacks(square: usize, mut occupancy: u64) -> u64 {
+    return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
+}
+
+unsafe fn is_square_under_attack(square: usize, side: usize) -> usize {
+    if ((side == Sides::WHITE)
+        && (PAWN_ATTACKS[Sides::BLACK][square] & BITBOARDS[Pieces::PAWN] != 0))
+    {
+        return 1;
+    }
+    if ((side == Sides::BLACK)
+        && (PAWN_ATTACKS[Sides::WHITE][square] & BITBOARDS[Pieces::pawn] != 0))
+    {
+        return 1;
+    }
+
+    if ((KNIGHT_ATTACKS[square]
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::KNIGHT]
+        } else {
+            BITBOARDS[Pieces::knight]
+        })
+        != 0)
+    {
+        return 1;
+    }
+
+    if ((KING_ATTACKS[square]
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::KING]
+        } else {
+            BITBOARDS[Pieces::king]
+        })
+        != 0)
+    {
+        return 1;
+    }
+
+    if ((get_bishop_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::BISHOP]
+        } else {
+            BITBOARDS[Pieces::bishop]
+        })
+        != 0)
+    {
+        return 1;
+    }
+    if ((get_rook_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::ROOK]
+        } else {
+            BITBOARDS[Pieces::rook]
+        })
+        != 0)
+    {
+        return 1;
+    }
+    if ((get_queen_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::QUEEN]
+        } else {
+            BITBOARDS[Pieces::queen]
+        })
+        != 0)
+    {
+        return 1;
+    }
+
+    0
+}
+
 pub struct Sides;
 impl Sides {
     pub const WHITE: usize = 0;
     pub const BLACK: usize = 1;
+    pub const BOTH: usize = 2;
 }
 
 pub struct Pieces;
@@ -808,16 +1436,28 @@ impl Pieces {
     pub const ROOK: usize = 3;
     pub const QUEEN: usize = 4;
     pub const KING: usize = 5;
-}
-pub struct Position {
-    bb_sides: [u64; 2],
-    bb_pieces: [[u64; 6]; 2],
-}
-
-pub struct AttackTables {
-    attack_table: [[u64; 64]; 2],
+    pub const pawn: usize = 6;
+    pub const bishop: usize = 7;
+    pub const knight: usize = 8;
+    pub const rook: usize = 9;
+    pub const queen: usize = 10;
+    pub const king: usize = 11;
 }
 
+enum AsciiPieces {
+    P,
+    N,
+    B,
+    R,
+    Q,
+    K,
+    p,
+    n,
+    b,
+    r,
+    q,
+    k,
+}
 pub enum SquareLabels {
     A8,
     B8,
