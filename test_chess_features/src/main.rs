@@ -1,24 +1,24 @@
 use rand::Rng;
-use std::num::Wrapping;
+use std::{io, num::Wrapping};
 
 fn main() {
     unsafe {
         init();
         let mut move_list = MoveList::init();
 
-        BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::B2 as usize);
-        BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::G6 as usize);
-        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::B3 as usize);
-        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B6 as usize);
-        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::C7 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B7 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F5 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::E2 as usize);
-        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::A8 as usize);
+        // BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::B2 as usize);
+        // BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::G6 as usize);
+        // BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::B3 as usize);
+        // BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B6 as usize);
+        // BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::C7 as usize);
+        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B7 as usize);
+        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
+        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F5 as usize);
+        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F7 as usize);
+        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::A7 as usize);
         BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::H2 as usize);
-        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::A2 as usize);
+        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::D8 as usize);
         // print_bitboard(BITBOARDS[Pieces::pawn]);
         // print_bitboard(PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]);
         // print_bitboard(
@@ -35,8 +35,19 @@ fn main() {
         // print_squares_under_attack(Sides::WHITE);
         // print_bitboard(OCCUPANCIES_BITBOARDS[Sides::BOTH]);
         print_board();
-        move_list = generate_moves(move_list);
-        move_list.print()
+        SIDE = 1;
+        print_bitboard();
+        println!(
+            "{}",
+            is_square_under_attack(
+                get_index_of_least_significant_bit(BITBOARDS[Pieces::king]),
+                SIDE
+            )
+        )
+
+        // move_list = generate_moves(move_list);
+        // move_list.Move();
+        // move_list.print()
 
         // let mut a = LocalMove::init();
         // a.encode_move(
@@ -306,10 +317,14 @@ static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
 ///Represent all pieces both sides, 6 * 2
 static mut BITBOARDS: [u64; 12] = [0u64; 12];
 
+static mut COPY_OF_BITBOARDS: [u64; 12] = [0u64; 12];
+static mut COPY_OF_OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
+static mut COPY_OF_SIDE: usize = 0;
+
 ///3 occupancy bbs, only black, only white, both
 static mut OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
 
-static mut SIDE: usize = 1;
+static mut SIDE: usize = 0;
 static mut SIDES: [&str; 2] = ["White", "Black"];
 
 unsafe fn init() {
@@ -344,11 +359,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
                         {
-                            println!(
-                                "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -386,11 +401,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            println!(
-                                "Push Pawn: {} -> {}",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Push Pawn: {} -> {}",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                             move_list.add(current_move);
 
@@ -399,11 +414,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                                 && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq - 8))
                                     == 0))
                             {
-                                println!(
-                                    "MEGA PAWN RUSHUUUU: {} -> {}",
-                                    CONVERT_INDEX_COORDINATE[source_sq],
-                                    CONVERT_INDEX_COORDINATE[target_sq - 8]
-                                );
+                                // println!(
+                                //     "MEGA PAWN RUSHUUUU: {} -> {}",
+                                //     CONVERT_INDEX_COORDINATE[source_sq],
+                                //     CONVERT_INDEX_COORDINATE[target_sq - 8]
+                                // );
                                 current_move.encode_move(source_sq, target_sq - 8, piece, 12, 0, 1);
                                 move_list.add(current_move);
                             }
@@ -417,11 +432,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
                         {
-                            println!(
-                                "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -459,11 +474,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            println!(
-                                "Capture Pawn: {} -> {}",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Capture Pawn: {} -> {}",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                             move_list.add(current_move);
                         }
@@ -494,11 +509,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
                         {
-                            println!(
-                                "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -536,11 +551,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            println!(
-                                "Push Pawn: {} -> {}",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Push Pawn: {} -> {}",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                             move_list.add(current_move);
 
@@ -549,11 +564,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                                 && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq + 8))
                                     == 0))
                             {
-                                println!(
-                                    "MEGA PAWN RUSHUUUU: {} -> {}",
-                                    CONVERT_INDEX_COORDINATE[source_sq],
-                                    CONVERT_INDEX_COORDINATE[target_sq + 8]
-                                );
+                                // println!(
+                                //     "MEGA PAWN RUSHUUUU: {} -> {}",
+                                //     CONVERT_INDEX_COORDINATE[source_sq],
+                                //     CONVERT_INDEX_COORDINATE[target_sq + 8]
+                                // );
                                 current_move.encode_move(source_sq, target_sq, piece, 12, 0, 1);
                                 move_list.add(current_move);
                             }
@@ -567,11 +582,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
                         {
-                            println!(
-                                "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -609,11 +624,11 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            println!(
-                                "Capture Pawn: {} -> {}",
-                                CONVERT_INDEX_COORDINATE[source_sq],
-                                CONVERT_INDEX_COORDINATE[target_sq]
-                            );
+                            // println!(
+                            //     "Capture Pawn: {} -> {}",
+                            //     CONVERT_INDEX_COORDINATE[source_sq],
+                            //     CONVERT_INDEX_COORDINATE[target_sq]
+                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                             move_list.add(current_move);
                         }
@@ -656,19 +671,19 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        println!(
-                            "Piece Move: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Move: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        println!(
-                            "Piece Capture: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Capture: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -712,17 +727,21 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        println!(
-                            "Piece Move: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Move: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
+                        move_list.add(current_move);
                     } else {
-                        println!(
-                            "Piece Capture: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Capture: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
+                        move_list.add(current_move);
                     }
 
                     if (_attacks & (1u64 << target_sq) != 0) {
@@ -764,17 +783,21 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        println!(
-                            "Piece Move: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Move: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
+                        move_list.add(current_move);
                     } else {
-                        println!(
-                            "Piece Capture: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Capture: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
+                        move_list.add(current_move);
                     }
 
                     if (_attacks & (1u64 << target_sq) != 0) {
@@ -816,17 +839,21 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        println!(
-                            "Piece Move: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Move: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
+                        move_list.add(current_move);
                     } else {
-                        println!(
-                            "Piece Capture: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Capture: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
+                        move_list.add(current_move);
                     }
 
                     if (_attacks & (1u64 << target_sq) != 0) {
@@ -868,17 +895,21 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        println!(
-                            "Piece Move: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Move: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
+                        move_list.add(current_move);
                     } else {
-                        println!(
-                            "Piece Capture: {} -> {}",
-                            CONVERT_INDEX_COORDINATE[source_sq],
-                            CONVERT_INDEX_COORDINATE[target_sq]
-                        );
+                        // println!(
+                        //     "Piece Capture: {} -> {}",
+                        //     CONVERT_INDEX_COORDINATE[source_sq],
+                        //     CONVERT_INDEX_COORDINATE[target_sq]
+                        // );
+                        current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
+                        move_list.add(current_move);
                     }
 
                     if (_attacks & (1u64 << target_sq) != 0) {
@@ -898,6 +929,174 @@ unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
     }
     move_list
 }
+
+unsafe fn make_move(_move: LocalMove, move_flag: usize) -> usize {
+    if (move_flag == MoveTypes::AllMoves as usize) {
+        make_board_copy();
+        let source_sq = _move.get_move_source();
+        let target_sq = _move.get_move_target();
+        let piece = _move.get_move_piece();
+        let promoted = _move.get_move_promoted();
+        let capture_flag = _move.get_move_capture_flag();
+        let double_pawn_push = _move.get_move_double_push_flag();
+
+        if (BITBOARDS[piece] & (1u64 << source_sq) != 0) {
+            BITBOARDS[piece] ^= (1u64 << source_sq);
+        } else {
+            0;
+        }
+        BITBOARDS[piece] |= 1u64 << target_sq;
+
+        if (capture_flag != 0) {
+            let start_index;
+            let end_index;
+
+            if (SIDE == Sides::WHITE) {
+                start_index = 6;
+                end_index = 11;
+            } else {
+                start_index = 0;
+                end_index = 5;
+            }
+            for i in start_index..end_index {
+                if ((BITBOARDS[i]) & (1u64 << (target_sq)) != 0) {
+                    if (BITBOARDS[i] & (1u64 << target_sq) != 0) {
+                        BITBOARDS[i] ^= (1u64 << target_sq);
+                    } else {
+                        0;
+                    }
+                    break;
+                }
+            }
+        }
+        if (promoted != 12) {
+            let mut i;
+            if (SIDE == Sides::WHITE) {
+                i = Pieces::PAWN
+            } else {
+                i = Pieces::pawn
+            }
+            if (BITBOARDS[i] & (1u64 << target_sq) != 0) {
+                BITBOARDS[i] ^= (1u64 << target_sq);
+            } else {
+                0;
+            }
+            BITBOARDS[promoted] |= 1u64 << target_sq;
+        }
+        OCCUPANCIES_BITBOARDS = [0u64; 3];
+        for x in Pieces::PAWN..Pieces::KING {
+            OCCUPANCIES_BITBOARDS[Sides::WHITE] |= BITBOARDS[x];
+        }
+        for x in Pieces::pawn..Pieces::king {
+            OCCUPANCIES_BITBOARDS[Sides::BLACK] |= BITBOARDS[x];
+        }
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
+
+        if (SIDE == Sides::WHITE) {
+            SIDE = Sides::BLACK
+        } else {
+            SIDE = Sides::WHITE
+        }
+
+        if (is_square_under_attack(
+            if (SIDE == Sides::WHITE) {
+                get_index_of_least_significant_bit(BITBOARDS[Pieces::king])
+            } else {
+                get_index_of_least_significant_bit(BITBOARDS[Pieces::KING])
+            },
+            SIDE,
+        ) != 0)
+        {
+            restore_board_from_copy();
+            return 0;
+        } else {
+            return 1;
+        }
+    } else {
+        if (_move.get_move_capture_flag() != 0) {
+            make_move(_move, move_flag);
+        } else {
+            return 0;
+        }
+    }
+    0
+}
+
+unsafe fn make_board_copy() {
+    COPY_OF_BITBOARDS = BITBOARDS;
+    COPY_OF_OCCUPANCIES_BITBOARDS = OCCUPANCIES_BITBOARDS;
+    COPY_OF_SIDE = SIDE;
+}
+
+unsafe fn restore_board_from_copy() {
+    BITBOARDS = COPY_OF_BITBOARDS;
+    OCCUPANCIES_BITBOARDS = COPY_OF_OCCUPANCIES_BITBOARDS;
+    SIDE = COPY_OF_SIDE;
+}
+
+// unsafe fn generate_moves_not_pawn(
+// piece: usize,
+// mut _bitboard: u64,
+// mut move_list: MoveList,
+//     mut _attacks: u64,
+//     mut current_move: LocalMove,
+// ) -> (u64, MoveList) {
+//     if (if (SIDE == Sides::WHITE) {
+//         piece == Pieces::KNIGHT
+//     } else {
+//         piece == Pieces::knight
+//     }) {
+//         while (_bitboard != 0) {
+//             source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+
+//             _attacks = KNIGHT_ATTACKS[source_sq]
+//                 & (if (SIDE == Sides::WHITE) {
+//                     !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+//                 } else {
+//                     !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+//                 });
+
+//             while (_attacks != 0) {
+//                 target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+
+//                 if ((if (SIDE == Sides::WHITE) {
+//                     OCCUPANCIES_BITBOARDS[Sides::BLACK]
+//                 } else {
+//                     OCCUPANCIES_BITBOARDS[Sides::WHITE]
+//                 } & (1u64 << target_sq))
+//                     == 0)
+//                 {
+//                     println!(
+//                         "Piece Move: {} -> {}",
+//                         CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
+//                     );
+//                     current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
+//                     move_list.add(current_move);
+//                 } else {
+//                     println!(
+//                         "Piece Capture: {} -> {}",
+//                         CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
+//                     );
+//                     current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
+//                     move_list.add(current_move);
+//                 }
+
+//                 if (_attacks & (1u64 << target_sq) != 0) {
+//                     _attacks ^= (1u64 << target_sq);
+//                 } else {
+//                     0;
+//                 }
+//             }
+
+//             if (_bitboard & (1u64 << source_sq) != 0) {
+//                 _bitboard ^= (1u64 << source_sq);
+//             } else {
+//                 0;
+//             }
+//         }
+//     }
+// }
 
 unsafe fn generate_bishop_masks() {
     for square_index in 0..64 {
@@ -1544,27 +1743,27 @@ unsafe fn is_square_under_attack(square: usize, side: usize) -> usize {
     0
 }
 
-pub struct Sides;
+struct Sides;
 impl Sides {
-    pub const WHITE: usize = 0;
-    pub const BLACK: usize = 1;
-    pub const BOTH: usize = 2;
+    const WHITE: usize = 0;
+    const BLACK: usize = 1;
+    const BOTH: usize = 2;
 }
 
-pub struct Pieces;
+struct Pieces;
 impl Pieces {
-    pub const PAWN: usize = 0;
-    pub const BISHOP: usize = 1;
-    pub const KNIGHT: usize = 2;
-    pub const ROOK: usize = 3;
-    pub const QUEEN: usize = 4;
-    pub const KING: usize = 5;
-    pub const pawn: usize = 6;
-    pub const bishop: usize = 7;
-    pub const knight: usize = 8;
-    pub const rook: usize = 9;
-    pub const queen: usize = 10;
-    pub const king: usize = 11;
+    const PAWN: usize = 0;
+    const BISHOP: usize = 1;
+    const KNIGHT: usize = 2;
+    const ROOK: usize = 3;
+    const QUEEN: usize = 4;
+    const KING: usize = 5;
+    const pawn: usize = 6;
+    const bishop: usize = 7;
+    const knight: usize = 8;
+    const rook: usize = 9;
+    const queen: usize = 10;
+    const king: usize = 11;
 }
 
 enum AsciiPieces {
@@ -1581,7 +1780,7 @@ enum AsciiPieces {
     q,
     k,
 }
-pub enum SquareLabels {
+enum SquareLabels {
     A8,
     B8,
     C8,
@@ -1648,6 +1847,72 @@ pub enum SquareLabels {
     H1,
 }
 
+enum MoveTypes {
+    AllMoves,
+    OnlyCapture,
+}
+
+#[derive(Copy, Clone, Debug)]
+struct Game {
+    state: GameState,
+    game_variables: GameVariables,
+    bitboards: [u64; 12],
+}
+impl Game {
+    fn init() -> Game {
+        Game {
+            state: GameState::InProgress,
+            game_variables: GameVariables::init(),
+            bitboards: [0u64; 12],
+        }
+    }
+}
+#[derive(Copy, Clone, Debug)]
+enum GameState {
+    InProgress,
+    Check,
+    GameOver,
+}
+#[derive(Copy, Clone, Debug)]
+struct GameVariables {
+    move_list: MoveList,
+    side: u8,
+    occupancies: [u64; 3],
+}
+
+impl GameVariables {
+    fn init() -> GameVariables {
+        GameVariables {
+            move_list: MoveList::init(),
+            side: 0,
+            occupancies: [10000u64; 3],
+        }
+    }
+}
+#[derive(Copy, Clone, Debug)]
+struct AttackTables {
+    pawn_attacks: [[u64; 64]; 2],
+    knight_attacks: [u64; 64],
+    king_attacks: [u64; 64],
+    bishop_masks: [u64; 64],
+    rook_masks: [u64; 64],
+    bishop_attacks: [[u64; 64]; 512],
+    rook_attacks: [[u64; 64]; 4096],
+}
+impl AttackTables {
+    fn init() -> AttackTables {
+        AttackTables {
+            pawn_attacks: [[0u64; 64]; 2],
+            knight_attacks: [0u64; 64],
+            king_attacks: [0u64; 64],
+            bishop_masks: [0u64; 64],
+            rook_masks: [0u64; 64],
+            bishop_attacks: [[0u64; 64]; 512],
+            rook_attacks: [[0u64; 64]; 4096],
+        }
+    }
+}
+#[derive(Copy, Clone, Debug)]
 struct MoveList {
     moves: [LocalMove; 256],
     count: usize,
@@ -1669,8 +1934,21 @@ impl MoveList {
             _move.print();
         }
     }
+    unsafe fn Move(&self) {
+        for i in 0..self.count {
+            let _move = self.moves[i];
+            make_board_copy();
+            make_move(_move, MoveTypes::AllMoves as usize);
+            print_board();
+            let mut input: String = String::new();
+            io::stdin().read_line(&mut input).expect("Error");
+            restore_board_from_copy();
+            io::stdin().read_line(&mut input).expect("Error");
+        }
+    }
 }
-#[derive(Copy, Clone)]
+
+#[derive(Copy, Clone, Debug)]
 struct LocalMove {
     _move: usize,
 }
@@ -1704,26 +1982,22 @@ impl LocalMove {
     }
 
     fn get_move_target(&self) -> usize {
-        return ((self._move & 0xfc0) >> 6);
+        return (self._move & 0xfc0) >> 6;
     }
 
     fn get_move_piece(&self) -> usize {
-        return ((self._move & 0xf000) >> 12);
+        return (self._move & 0xf000) >> 12;
     }
 
     fn get_move_promoted(&self) -> usize {
-        return ((self._move & 0xf0000) >> 16);
+        return (self._move & 0xf0000) >> 16;
     }
     fn get_move_capture_flag(&self) -> usize {
         return if (self._move & 0xf100000) != 0 { 1 } else { 0 };
     }
 
     fn get_move_double_push_flag(&self) -> usize {
-        return if ((self._move & 0xf200000) != 0) {
-            1
-        } else {
-            0
-        };
+        return if (self._move & 0xf200000) != 0 { 1 } else { 0 };
     }
 
     fn print(&self) {
