@@ -6,25 +6,54 @@ fn main() {
         init();
         let mut move_list = MoveList::init();
 
-        // BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::B2 as usize);
-        // BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::G6 as usize);
-        // BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::B3 as usize);
-        // BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B6 as usize);
-        // BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::C7 as usize);
-        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B7 as usize);
-        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
-        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F5 as usize);
-        // BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
-        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F7 as usize);
-        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::A7 as usize);
-        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::H2 as usize);
-        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::D8 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::A2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::E2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::G2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::H2 as usize);
+
+        BITBOARDS[Pieces::ROOK] |= (1u64 << SquareLabels::A1 as usize);
+        BITBOARDS[Pieces::ROOK] |= (1u64 << SquareLabels::H1 as usize);
+
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::G1 as usize);
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B1 as usize);
+
+        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::C1 as usize);
+        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::F1 as usize);
+
+        BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::D1 as usize);
+        BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::E1 as usize);
+
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::A7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::B7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::C7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::D7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::E7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::F7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::G7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::H7 as usize);
+
+        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::A8 as usize);
+        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::H8 as usize);
+
+        BITBOARDS[Pieces::knight] |= (1u64 << SquareLabels::G8 as usize);
+        BITBOARDS[Pieces::knight] |= (1u64 << SquareLabels::B8 as usize);
+
+        BITBOARDS[Pieces::bishop] |= (1u64 << SquareLabels::C8 as usize);
+        BITBOARDS[Pieces::bishop] |= (1u64 << SquareLabels::F8 as usize);
+
+        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::E8 as usize);
+        BITBOARDS[Pieces::queen] |= (1u64 << SquareLabels::D8 as usize);
+
         // print_bitboard(BITBOARDS[Pieces::pawn]);
         // print_bitboard(PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]);
         // print_bitboard(
         //     (BITBOARDS[Pieces::pawn] & PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]),
         // );
-
+        println!("{}", get_index_of_least_significant_bit(1u64));
         for x in 0..6 {
             OCCUPANCIES_BITBOARDS[Sides::WHITE] |= BITBOARDS[x];
             OCCUPANCIES_BITBOARDS[Sides::BLACK] |= BITBOARDS[x + 6];
@@ -32,21 +61,16 @@ fn main() {
         OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
         OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
 
+        // print_squares_under_attack(1);
+        print_board();
         // print_squares_under_attack(Sides::WHITE);
         // print_bitboard(OCCUPANCIES_BITBOARDS[Sides::BOTH]);
-        print_board();
-        SIDE = 1;
-        print_bitboard();
-        println!(
-            "{}",
-            is_square_under_attack(
-                get_index_of_least_significant_bit(BITBOARDS[Pieces::king]),
-                SIDE
-            )
-        )
+        SIDE = 0;
+        move_list = generate_moves(move_list);
+        move_list.Move();
 
-        // move_list = generate_moves(move_list);
-        // move_list.Move();
+        // println!("{}", perft_test(1));
+
         // move_list.print()
 
         // let mut a = LocalMove::init();
@@ -326,6 +350,8 @@ static mut OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
 
 static mut SIDE: usize = 0;
 static mut SIDES: [&str; 2] = ["White", "Black"];
+
+static mut NODE_COUNT: u128 = 0;
 
 unsafe fn init() {
     PAWN_ATTACKS = generate_pawn_attack_tables();
@@ -993,21 +1019,11 @@ unsafe fn make_move(_move: LocalMove, move_flag: usize) -> usize {
         OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
         OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
 
-        if (SIDE == Sides::WHITE) {
-            SIDE = Sides::BLACK
-        } else {
-            SIDE = Sides::WHITE
-        }
+        SIDE ^= 1;
 
-        if (is_square_under_attack(
-            if (SIDE == Sides::WHITE) {
-                get_index_of_least_significant_bit(BITBOARDS[Pieces::king])
-            } else {
-                get_index_of_least_significant_bit(BITBOARDS[Pieces::KING])
-            },
-            SIDE,
-        ) != 0)
-        {
+        let tmp1 = get_index_of_least_significant_bit(BITBOARDS[Pieces::king]) - 1;
+        let tmp2 = get_index_of_least_significant_bit(BITBOARDS[Pieces::KING]) - 1;
+        if (is_square_under_attack(if (SIDE == Sides::WHITE) { tmp1 } else { tmp2 }, SIDE) != 0) {
             restore_board_from_copy();
             return 0;
         } else {
@@ -1743,6 +1759,25 @@ unsafe fn is_square_under_attack(square: usize, side: usize) -> usize {
     0
 }
 
+unsafe fn perft_test(depth: usize) -> u128 {
+    let mut move_list = MoveList::init();
+    let mut nodes = 0;
+    if (depth == 0) {
+        nodes += 1;
+    }
+    move_list = generate_moves(move_list);
+    for i in 0..move_list.count {
+        let _move = move_list.moves[i];
+        make_board_copy();
+        if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
+            continue;
+        }
+        perft_test(depth - 1);
+        restore_board_from_copy();
+    }
+    nodes
+}
+
 struct Sides;
 impl Sides {
     const WHITE: usize = 0;
@@ -1938,12 +1973,25 @@ impl MoveList {
         for i in 0..self.count {
             let _move = self.moves[i];
             make_board_copy();
-            make_move(_move, MoveTypes::AllMoves as usize);
+            if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
+                continue;
+            }
+            // make_move(_move, MoveTypes::AllMoves as usize);
             print_board();
-            let mut input: String = String::new();
-            io::stdin().read_line(&mut input).expect("Error");
+            // let mut input: String = String::new();
+            // io::stdin().read_line(&mut input).expect("Error");
             restore_board_from_copy();
-            io::stdin().read_line(&mut input).expect("Error");
+        }
+    }
+    unsafe fn Perft(&self, depth: usize) {
+        for i in 0..self.count {
+            let _move = self.moves[i];
+            make_board_copy();
+            if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
+                continue;
+            }
+            perft_test(depth - 1);
+            restore_board_from_copy();
         }
     }
 }
