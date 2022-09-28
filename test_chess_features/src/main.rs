@@ -3,14 +3,50 @@ use std::{io, num::Wrapping};
 
 fn main() {
     unsafe {
-        // init();
-        let mut game = Game::init();
-        game.set_starting_board();
-        game.update_occupancy();
-
-        let mut attack_tables = AttackTables::init();
-        attack_tables.add_BR_attacks();
+        init();
         let mut move_list = MoveList::init();
+
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::A2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::B2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::E2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::F2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::G2 as usize);
+        BITBOARDS[Pieces::PAWN] |= (1u64 << SquareLabels::H2 as usize);
+
+        BITBOARDS[Pieces::ROOK] |= (1u64 << SquareLabels::A1 as usize);
+        BITBOARDS[Pieces::ROOK] |= (1u64 << SquareLabels::H1 as usize);
+
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::G1 as usize);
+        BITBOARDS[Pieces::KNIGHT] |= (1u64 << SquareLabels::B1 as usize);
+
+        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::C1 as usize);
+        BITBOARDS[Pieces::BISHOP] |= (1u64 << SquareLabels::F1 as usize);
+
+        BITBOARDS[Pieces::KING] |= (1u64 << SquareLabels::D1 as usize);
+        BITBOARDS[Pieces::QUEEN] |= (1u64 << SquareLabels::E1 as usize);
+
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::A7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::B7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::C7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::D7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::E7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::F7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::G7 as usize);
+        BITBOARDS[Pieces::pawn] |= (1u64 << SquareLabels::H7 as usize);
+
+        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::A8 as usize);
+        BITBOARDS[Pieces::rook] |= (1u64 << SquareLabels::H8 as usize);
+
+        BITBOARDS[Pieces::knight] |= (1u64 << SquareLabels::G8 as usize);
+        BITBOARDS[Pieces::knight] |= (1u64 << SquareLabels::B8 as usize);
+
+        BITBOARDS[Pieces::bishop] |= (1u64 << SquareLabels::C8 as usize);
+        BITBOARDS[Pieces::bishop] |= (1u64 << SquareLabels::F8 as usize);
+
+        BITBOARDS[Pieces::king] |= (1u64 << SquareLabels::E8 as usize);
+        BITBOARDS[Pieces::queen] |= (1u64 << SquareLabels::D8 as usize);
 
         // print_bitboard(BITBOARDS[Pieces::pawn]);
         // print_bitboard(PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]);
@@ -18,14 +54,22 @@ fn main() {
         //     (BITBOARDS[Pieces::pawn] & PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]),
         // );
         println!("{}", get_index_of_least_significant_bit(1u64));
+        for x in 0..6 {
+            OCCUPANCIES_BITBOARDS[Sides::WHITE] |= BITBOARDS[x];
+            OCCUPANCIES_BITBOARDS[Sides::BLACK] |= BITBOARDS[x + 6];
+        }
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
 
         // print_squares_under_attack(1);
-        game.print_board();
+        print_board();
         // print_squares_under_attack(Sides::WHITE);
-        // print_bitboard(game.occupancies[Sides::BOTH]);
-        let mut move_list = MoveList::init();
-        move_list = generate_moves(move_list, game, attack_tables);
-        println!("{}", perft_test(1, game, attack_tables));
+        // print_bitboard(OCCUPANCIES_BITBOARDS[Sides::BOTH]);
+        SIDE = 0;
+        move_list = generate_moves(move_list);
+        move_list.Move();
+
+        // println!("{}", perft_test(1));
 
         // move_list.print()
 
@@ -286,40 +330,40 @@ const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
     5924513492108288u64,
     90511840181764112u64,
 ];
-// static mut PAWN_ATTACKS: [[u64; 64]; 2] = [[0u64; 64]; 2];
-// static mut KNIGHT_ATTACKS: [u64; 64] = [0u64; 64];
-// static mut KING_ATTACKS: [u64; 64] = [0u64; 64];
-// static mut BISHOP_MASKS: [u64; 64] = [0u64; 64];
-// static mut ROOK_MASKS: [u64; 64] = [0u64; 64];
-// static mut BISHOP_ATTACKS: [[u64; 64]; 512] = [[0u64; 64]; 512];
-// static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
+static mut PAWN_ATTACKS: [[u64; 64]; 2] = [[0u64; 64]; 2];
+static mut KNIGHT_ATTACKS: [u64; 64] = [0u64; 64];
+static mut KING_ATTACKS: [u64; 64] = [0u64; 64];
+static mut BISHOP_MASKS: [u64; 64] = [0u64; 64];
+static mut ROOK_MASKS: [u64; 64] = [0u64; 64];
+static mut BISHOP_ATTACKS: [[u64; 64]; 512] = [[0u64; 64]; 512];
+static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
 
-// ///Represent all pieces both sides, 6 * 2
-// static mut BITBOARDS: [u64; 12] = [0u64; 12];
+///Represent all pieces both sides, 6 * 2
+static mut BITBOARDS: [u64; 12] = [0u64; 12];
 
-// static mut COPY_OF_BITBOARDS: [u64; 12] = [0u64; 12];
-// static mut COPY_OF_game.occupancies: [u64; 3] = [0u64; 3];
-// static mut COPY_OF_SIDE: usize = 0;
+static mut COPY_OF_BITBOARDS: [u64; 12] = [0u64; 12];
+static mut COPY_OF_OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
+static mut COPY_OF_SIDE: usize = 0;
 
 ///3 occupancy bbs, only black, only white, both
-// static mut game.occupancies: [u64; 3] = [0u64; 3];
+static mut OCCUPANCIES_BITBOARDS: [u64; 3] = [0u64; 3];
 
-// static mut SIDE: usize = 0;
-const SIDES: [&str; 2] = ["White", "Black"];
+static mut SIDE: usize = 0;
+static mut SIDES: [&str; 2] = ["White", "Black"];
 
 static mut NODE_COUNT: u128 = 0;
 
-// unsafe fn init() {
-//     PAWN_ATTACKS = generate_pawn_attack_tables();
-//     KNIGHT_ATTACKS = generate_knight_attack_tables();
-//     KING_ATTACKS = generate_king_attack_tables();
-//     generate_bishop_masks();
-//     generate_rook_masks();
-//     generate_bishop_attack_tables();
-//     generate_rook_attack_tables();
-// }
+unsafe fn init() {
+    PAWN_ATTACKS = generate_pawn_attack_tables();
+    KNIGHT_ATTACKS = generate_knight_attack_tables();
+    KING_ATTACKS = generate_king_attack_tables();
+    generate_bishop_masks();
+    generate_rook_masks();
+    generate_bishop_attack_tables();
+    generate_rook_attack_tables();
+}
 ///largely inspired by https://github.com/jordanbray/chess, https://github.com/mkandalf/crust/tree/master/src and https://github.com/bluefeversoft/Vice_Chess_Engine/blob/master/Ch36.zip
-fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTables) -> MoveList {
+unsafe fn generate_moves(mut move_list: MoveList) -> MoveList {
     let mut source_sq: usize = 0;
     let mut target_sq: usize = 0;
     let mut _bitboard: u64 = 0;
@@ -327,16 +371,16 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
 
     for piece in 0..12 {
         let mut current_move = LocalMove::init();
-        _bitboard = game.bitboards[piece];
+        _bitboard = BITBOARDS[piece];
 
-        if game.side == Sides::WHITE {
+        if SIDE == Sides::WHITE {
             if piece == Pieces::PAWN {
                 while (_bitboard != 0) {
                     source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
                     target_sq = source_sq - 8;
 
                     if ((target_sq > SquareLabels::A8 as usize)
-                        && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq)) == 0))
+                        && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq)) == 0))
                     {
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
@@ -393,7 +437,8 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
 
                             if ((source_sq >= SquareLabels::A2 as usize
                                 && source_sq <= SquareLabels::H2 as usize)
-                                && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq - 8)) == 0))
+                                && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq - 8))
+                                    == 0))
                             {
                                 // println!(
                                 //     "MEGA PAWN RUSHUUUU: {} -> {}",
@@ -405,8 +450,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                             }
                         }
                     }
-                    _attacks = attack_tables.pawn_attacks[game.side][source_sq]
-                        & game.occupancies[Sides::BLACK];
+                    _attacks = PAWN_ATTACKS[SIDE][source_sq] & OCCUPANCIES_BITBOARDS[Sides::BLACK];
 
                     while (_attacks != 0) {
                         target_sq = get_index_of_least_significant_bit(_attacks) - 1;
@@ -486,7 +530,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                     target_sq = source_sq + 8;
 
                     if ((target_sq > SquareLabels::A8 as usize)
-                        && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq)) == 0))
+                        && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq)) == 0))
                     {
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
@@ -543,7 +587,8 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
 
                             if ((source_sq >= SquareLabels::A7 as usize
                                 && source_sq <= SquareLabels::H7 as usize)
-                                && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq + 8)) == 0))
+                                && ((OCCUPANCIES_BITBOARDS[Sides::BOTH] & (1u64 << target_sq + 8))
+                                    == 0))
                             {
                                 // println!(
                                 //     "MEGA PAWN RUSHUUUU: {} -> {}",
@@ -555,8 +600,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                             }
                         }
                     }
-                    _attacks = attack_tables.pawn_attacks[game.side][source_sq]
-                        & game.occupancies[Sides::WHITE];
+                    _attacks = PAWN_ATTACKS[SIDE][source_sq] & OCCUPANCIES_BITBOARDS[Sides::WHITE];
 
                     while (_attacks != 0) {
                         target_sq = get_index_of_least_significant_bit(_attacks) - 1;
@@ -628,7 +672,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                 }
             }
         }
-        if (if (game.side == Sides::WHITE) {
+        if (if (SIDE == Sides::WHITE) {
             piece == Pieces::KNIGHT
         } else {
             piece == Pieces::knight
@@ -636,20 +680,20 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
             while (_bitboard != 0) {
                 source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
 
-                _attacks = attack_tables.knight_attacks[source_sq]
-                    & (if (game.side == Sides::WHITE) {
-                        !game.occupancies[Sides::WHITE]
+                _attacks = KNIGHT_ATTACKS[source_sq]
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } else {
-                        !game.occupancies[Sides::BLACK]
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     });
 
                 while (_attacks != 0) {
                     target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
-                    if ((if (game.side == Sides::WHITE) {
-                        game.occupancies[Sides::BLACK]
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     } else {
-                        game.occupancies[Sides::WHITE]
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } & (1u64 << target_sq))
                         == 0)
                     {
@@ -684,7 +728,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                 }
             }
         }
-        if (if (game.side == Sides::WHITE) {
+        if (if (SIDE == Sides::WHITE) {
             piece == Pieces::BISHOP
         } else {
             piece == Pieces::bishop
@@ -692,21 +736,20 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
             while (_bitboard != 0) {
                 source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
 
-                _attacks =
-                    get_bishop_attacks(source_sq, game.occupancies[Sides::BOTH], attack_tables)
-                        & (if (game.side == Sides::WHITE) {
-                            !game.occupancies[Sides::WHITE]
-                        } else {
-                            !game.occupancies[Sides::BLACK]
-                        });
+                _attacks = get_bishop_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
 
                 while (_attacks != 0) {
                     target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
-                    if ((if (game.side == Sides::WHITE) {
-                        game.occupancies[Sides::BLACK]
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     } else {
-                        game.occupancies[Sides::WHITE]
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } & (1u64 << target_sq))
                         == 0)
                     {
@@ -741,7 +784,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                 }
             }
         }
-        if (if (game.side == Sides::WHITE) {
+        if (if (SIDE == Sides::WHITE) {
             piece == Pieces::ROOK
         } else {
             piece == Pieces::rook
@@ -749,21 +792,20 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
             while (_bitboard != 0) {
                 source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
 
-                _attacks =
-                    get_rook_attacks(source_sq, game.occupancies[Sides::BOTH], attack_tables)
-                        & (if (game.side == Sides::WHITE) {
-                            !game.occupancies[Sides::WHITE]
-                        } else {
-                            !game.occupancies[Sides::BLACK]
-                        });
+                _attacks = get_rook_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
 
                 while (_attacks != 0) {
                     target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
-                    if ((if (game.side == Sides::WHITE) {
-                        game.occupancies[Sides::BLACK]
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     } else {
-                        game.occupancies[Sides::WHITE]
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } & (1u64 << target_sq))
                         == 0)
                     {
@@ -798,7 +840,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                 }
             }
         }
-        if (if (game.side == Sides::WHITE) {
+        if (if (SIDE == Sides::WHITE) {
             piece == Pieces::QUEEN
         } else {
             piece == Pieces::queen
@@ -806,21 +848,20 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
             while (_bitboard != 0) {
                 source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
 
-                _attacks =
-                    get_queen_attacks(source_sq, game.occupancies[Sides::BOTH], attack_tables)
-                        & (if (game.side == Sides::WHITE) {
-                            !game.occupancies[Sides::WHITE]
-                        } else {
-                            !game.occupancies[Sides::BLACK]
-                        });
+                _attacks = get_queen_attacks(source_sq, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
+                    } else {
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
+                    });
 
                 while (_attacks != 0) {
                     target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
-                    if ((if (game.side == Sides::WHITE) {
-                        game.occupancies[Sides::BLACK]
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     } else {
-                        game.occupancies[Sides::WHITE]
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } & (1u64 << target_sq))
                         == 0)
                     {
@@ -855,7 +896,7 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
                 }
             }
         }
-        if (if (game.side == Sides::WHITE) {
+        if (if (SIDE == Sides::WHITE) {
             piece == Pieces::KING
         } else {
             piece == Pieces::king
@@ -863,20 +904,20 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
             while (_bitboard != 0) {
                 source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
 
-                _attacks = (attack_tables.king_attacks[source_sq]
-                    & (if (game.side == Sides::WHITE) {
-                        !game.occupancies[Sides::WHITE]
+                _attacks = (KING_ATTACKS[source_sq]
+                    & (if (SIDE == Sides::WHITE) {
+                        !OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } else {
-                        !game.occupancies[Sides::BLACK]
+                        !OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     }));
 
                 while (_attacks != 0) {
                     target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
-                    if ((if (game.side == Sides::WHITE) {
-                        game.occupancies[Sides::BLACK]
+                    if ((if (SIDE == Sides::WHITE) {
+                        OCCUPANCIES_BITBOARDS[Sides::BLACK]
                     } else {
-                        game.occupancies[Sides::WHITE]
+                        OCCUPANCIES_BITBOARDS[Sides::WHITE]
                     } & (1u64 << target_sq))
                         == 0)
                     {
@@ -915,14 +956,9 @@ fn generate_moves(mut move_list: MoveList, game: Game, attack_tables: AttackTabl
     move_list
 }
 
-fn make_move(
-    _move: LocalMove,
-    move_flag: usize,
-    mut game: Game,
-    attack_tables: AttackTables,
-) -> usize {
+unsafe fn make_move(_move: LocalMove, move_flag: usize) -> usize {
     if (move_flag == MoveTypes::AllMoves as usize) {
-        game.make_board_copy();
+        make_board_copy();
         let source_sq = _move.get_move_source();
         let target_sq = _move.get_move_target();
         let piece = _move.get_move_piece();
@@ -930,18 +966,18 @@ fn make_move(
         let capture_flag = _move.get_move_capture_flag();
         let double_pawn_push = _move.get_move_double_push_flag();
 
-        if (game.bitboards[piece] & (1u64 << source_sq) != 0) {
-            game.bitboards[piece] ^= (1u64 << source_sq);
+        if (BITBOARDS[piece] & (1u64 << source_sq) != 0) {
+            BITBOARDS[piece] ^= (1u64 << source_sq);
         } else {
             0;
         }
-        game.bitboards[piece] |= 1u64 << target_sq;
+        BITBOARDS[piece] |= 1u64 << target_sq;
 
         if (capture_flag != 0) {
             let start_index;
             let end_index;
 
-            if (game.side == Sides::WHITE) {
+            if (SIDE == Sides::WHITE) {
                 start_index = 6;
                 end_index = 11;
             } else {
@@ -949,9 +985,9 @@ fn make_move(
                 end_index = 5;
             }
             for i in start_index..end_index {
-                if ((game.bitboards[i]) & (1u64 << (target_sq)) != 0) {
-                    if (game.bitboards[i] & (1u64 << target_sq) != 0) {
-                        game.bitboards[i] ^= (1u64 << target_sq);
+                if ((BITBOARDS[i]) & (1u64 << (target_sq)) != 0) {
+                    if (BITBOARDS[i] & (1u64 << target_sq) != 0) {
+                        BITBOARDS[i] ^= (1u64 << target_sq);
                     } else {
                         0;
                     }
@@ -961,56 +997,58 @@ fn make_move(
         }
         if (promoted != 12) {
             let mut i;
-            if (game.side == Sides::WHITE) {
+            if (SIDE == Sides::WHITE) {
                 i = Pieces::PAWN
             } else {
                 i = Pieces::pawn
             }
-            if (game.bitboards[i] & (1u64 << target_sq) != 0) {
-                game.bitboards[i] ^= (1u64 << target_sq);
+            if (BITBOARDS[i] & (1u64 << target_sq) != 0) {
+                BITBOARDS[i] ^= (1u64 << target_sq);
             } else {
                 0;
             }
-            game.bitboards[promoted] |= 1u64 << target_sq;
+            BITBOARDS[promoted] |= 1u64 << target_sq;
         }
-        game.occupancies = [0u64; 3];
+        OCCUPANCIES_BITBOARDS = [0u64; 3];
         for x in Pieces::PAWN..Pieces::KING {
-            game.occupancies[Sides::WHITE] |= game.bitboards[x];
+            OCCUPANCIES_BITBOARDS[Sides::WHITE] |= BITBOARDS[x];
         }
         for x in Pieces::pawn..Pieces::king {
-            game.occupancies[Sides::BLACK] |= game.bitboards[x];
+            OCCUPANCIES_BITBOARDS[Sides::BLACK] |= BITBOARDS[x];
         }
-        game.occupancies[Sides::BOTH] |= game.occupancies[Sides::BLACK];
-        game.occupancies[Sides::BOTH] |= game.occupancies[Sides::WHITE];
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::BLACK];
+        OCCUPANCIES_BITBOARDS[Sides::BOTH] |= OCCUPANCIES_BITBOARDS[Sides::WHITE];
 
-        game.side ^= 1;
+        SIDE ^= 1;
 
-        let tmp1 = get_index_of_least_significant_bit(game.bitboards[Pieces::king]) - 1;
-        let tmp2 = get_index_of_least_significant_bit(game.bitboards[Pieces::KING]) - 1;
-        if (is_square_under_attack(
-            if (game.side == Sides::WHITE) {
-                tmp1
-            } else {
-                tmp2
-            },
-            game.side,
-            game,
-            attack_tables,
-        ) != 0)
-        {
-            game.restore_board_from_copy();
+        let tmp1 = get_index_of_least_significant_bit(BITBOARDS[Pieces::king]) - 1;
+        let tmp2 = get_index_of_least_significant_bit(BITBOARDS[Pieces::KING]) - 1;
+        if (is_square_under_attack(if (SIDE == Sides::WHITE) { tmp1 } else { tmp2 }, SIDE) != 0) {
+            restore_board_from_copy();
             return 0;
         } else {
             return 1;
         }
     } else {
         if (_move.get_move_capture_flag() != 0) {
-            make_move(_move, move_flag, game, attack_tables);
+            make_move(_move, move_flag);
         } else {
             return 0;
         }
     }
     0
+}
+
+unsafe fn make_board_copy() {
+    COPY_OF_BITBOARDS = BITBOARDS;
+    COPY_OF_OCCUPANCIES_BITBOARDS = OCCUPANCIES_BITBOARDS;
+    COPY_OF_SIDE = SIDE;
+}
+
+unsafe fn restore_board_from_copy() {
+    BITBOARDS = COPY_OF_BITBOARDS;
+    OCCUPANCIES_BITBOARDS = COPY_OF_OCCUPANCIES_BITBOARDS;
+    SIDE = COPY_OF_SIDE;
 }
 
 // unsafe fn generate_moves_not_pawn(
@@ -1030,18 +1068,18 @@ fn make_move(
 
 //             _attacks = KNIGHT_ATTACKS[source_sq]
 //                 & (if (SIDE == Sides::WHITE) {
-//                     !game.occupancies[Sides::WHITE]
+//                     !OCCUPANCIES_BITBOARDS[Sides::WHITE]
 //                 } else {
-//                     !game.occupancies[Sides::BLACK]
+//                     !OCCUPANCIES_BITBOARDS[Sides::BLACK]
 //                 });
 
 //             while (_attacks != 0) {
 //                 target_sq = get_index_of_least_significant_bit(_attacks) - 1;
 
 //                 if ((if (SIDE == Sides::WHITE) {
-//                     game.occupancies[Sides::BLACK]
+//                     OCCUPANCIES_BITBOARDS[Sides::BLACK]
 //                 } else {
-//                     game.occupancies[Sides::WHITE]
+//                     OCCUPANCIES_BITBOARDS[Sides::WHITE]
 //                 } & (1u64 << target_sq))
 //                     == 0)
 //                 {
@@ -1076,19 +1114,15 @@ fn make_move(
 //     }
 // }
 
-fn generate_bishop_masks() -> [u64; 64] {
-    let mut masks: [u64; 64] = [0u64; 64];
+unsafe fn generate_bishop_masks() {
     for square_index in 0..64 {
-        masks[square_index] = mask_bishop_attack(square_index);
+        BISHOP_MASKS[square_index] = mask_bishop_attack(square_index);
     }
-    masks
 }
-fn generate_rook_masks() -> [u64; 64] {
-    let mut masks: [u64; 64] = [0u64; 64];
+unsafe fn generate_rook_masks() {
     for square_index in 0..64 {
-        masks[square_index] = mask_rook_attack(square_index);
+        ROOK_MASKS[square_index] = mask_rook_attack(square_index);
     }
-    masks
 }
 
 fn print_bitboard(bb: u64) {
@@ -1110,28 +1144,64 @@ fn print_bitboard(bb: u64) {
     println!("  A B C D E F G H");
     print!("{}\n", bb);
 }
-fn print_squares_under_attack(side: usize, game: Game, attack_tables: AttackTables) {
+unsafe fn print_squares_under_attack(side: usize) {
     for rank in 0..8 {
         print!("{} ", 8 - rank);
         for file in 0..8 {
             let square_index = (rank << 3) + file;
-            print!(
-                "{} ",
-                is_square_under_attack(square_index, side, game, attack_tables)
-            );
+            print!("{} ", is_square_under_attack(square_index, side));
         }
         println!("");
     }
     println!("  A B C D E F G H");
 }
 
-fn get_random_u32_number() -> u32 {
+unsafe fn print_board() {
+    println!("");
+    for rank in 0..8 {
+        print!("{} ", 8 - rank);
+        for file in 0..8 {
+            let square_index = (rank << 3) + file;
+
+            let mut piece = 12;
+
+            for i in 0..12 {
+                if ((BITBOARDS[i] & (1u64 << square_index)) != 0) {
+                    piece = i;
+                }
+            }
+
+            print!(
+                "{} ",
+                if piece == 12 {
+                    '.'
+                } else {
+                    ASCII_PIECES[piece]
+                }
+            );
+        }
+        println!("");
+    }
+    println!("  A B C D E F G H");
+    println!("Current turn: {}", SIDES[SIDE]);
+}
+
+static mut SEED: u32 = 1804289383;
+unsafe fn get_random_u32_number() -> u32 {
     let mut rng = rand::thread_rng();
     let r: u32 = rng.gen();
     r
+    // let mut number = SEED;
+    // number ^= number << 13;
+    // number ^= number >> 17;
+    // number ^= number << 5;
+
+    // // update random number state
+    // SEED = number;
+    // number
 }
 ///get random u64 by u32, algorithm courtesy of Tord Romstad
-fn get_random_u64_number() -> u64 {
+unsafe fn get_random_u64_number() -> u64 {
     let r1: u64;
     let r2: u64;
     let r3: u64;
@@ -1146,7 +1216,7 @@ fn get_random_u64_number() -> u64 {
 }
 
 ///Courtesy of Tord Romstad
-fn get_random_u64_number_with_fewer_nonzero() -> u64 {
+unsafe fn get_random_u64_number_with_fewer_nonzero() -> u64 {
     return get_random_u64_number() & get_random_u64_number() & get_random_u64_number();
 }
 
@@ -1155,20 +1225,15 @@ this is the most convoluted thing every but it works great, courtesy of Tord Rom
 correction. It work great for generation illegal magic numbers
 don't know why, if you know why do enlighten tis humble mortal
 */
-fn find_magic_number(
-    square_index: usize,
-    bit_count_in_mask: usize,
-    piece: usize,
-    attack_tables: AttackTables,
-) -> u64 {
+unsafe fn find_magic_number(square_index: usize, bit_count_in_mask: usize, piece: usize) -> u64 {
     let mut occupancies: [u64; 4096] = [0; 4096];
     let mut attacks: [u64; 4096] = [0; 4096];
     let mut used_attacks: [u64; 4096] = [0u64; 4096];
 
     let attack_mask: u64 = if (piece == Pieces::BISHOP) {
-        attack_tables.bishop_masks[square_index]
+        BISHOP_MASKS[square_index]
     } else {
-        attack_tables.rook_masks[square_index]
+        ROOK_MASKS[square_index]
     };
 
     let occupancy_indicies = 1 << bit_count_in_mask;
@@ -1563,10 +1628,9 @@ fn generate_king_attack_tables() -> [u64; 64] {
     king_attack_table
 }
 
-fn generate_bishop_attack_tables(bishop_masks: [u64; 64]) -> [[u64; 64]; 512] {
-    let mut attacks: [[u64; 64]; 512] = [[0u64; 64]; 512];
+unsafe fn generate_bishop_attack_tables() {
     for square_index in 0..64 {
-        let attack_mask = bishop_masks[square_index];
+        let attack_mask = BISHOP_MASKS[square_index];
         let bit_count_in_mask = count_bits(attack_mask);
         let occupancy_indicies = (1 << bit_count_in_mask);
 
@@ -1578,26 +1642,24 @@ fn generate_bishop_attack_tables(bishop_masks: [u64; 64]) -> [[u64; 64]; 512] {
                 >> (64 - BISHOP_OCCUPANCY_BIT_COUNT[square_index]);
             let tmp: usize = magic_index.try_into().unwrap();
 
-            attacks[tmp][square_index] =
+            BISHOP_ATTACKS[tmp][square_index] =
                 mask_bishop_attack_with_blocking_pieces(square_index, occupancy);
             index += 1;
         }
     }
-    attacks
 }
 
-fn get_bishop_attacks(square: usize, mut occupancy: u64, attack_tables: AttackTables) -> u64 {
-    occupancy &= attack_tables.bishop_masks[square];
+unsafe fn get_bishop_attacks(square: usize, mut occupancy: u64) -> u64 {
+    occupancy &= BISHOP_MASKS[square];
     occupancy *= BISHOP_MAGIC_NUMBERS[square];
     occupancy >>= (64 - BISHOP_OCCUPANCY_BIT_COUNT[square]);
 
     let tmp: usize = occupancy.try_into().unwrap();
-    return attack_tables.bishop_attacks[tmp][square];
+    return BISHOP_ATTACKS[tmp][square];
 }
-fn generate_rook_attack_tables(rook_masks: [u64; 64]) -> [[u64; 64]; 4096] {
-    let mut attacks: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
+unsafe fn generate_rook_attack_tables() {
     for square_index in 0..64 {
-        let attack_mask = rook_masks[square_index];
+        let attack_mask = ROOK_MASKS[square_index];
         let bit_count_in_mask = count_bits(attack_mask);
         let occupancy_indicies = (1 << bit_count_in_mask);
 
@@ -1609,92 +1671,85 @@ fn generate_rook_attack_tables(rook_masks: [u64; 64]) -> [[u64; 64]; 4096] {
                 >> (64 - ROOK_OCCUPANCY_BIT_COUNT[square_index]);
             let tmp: usize = magic_index.try_into().unwrap();
 
-            attacks[tmp][square_index] =
+            ROOK_ATTACKS[tmp][square_index] =
                 mask_rook_attack_with_blocking_pieces(square_index, occupancy);
             index += 1;
         }
     }
-    attacks
 }
 
-fn get_rook_attacks(square: usize, mut occupancy: u64, attack_tables: AttackTables) -> u64 {
-    occupancy &= attack_tables.rook_masks[square];
+unsafe fn get_rook_attacks(square: usize, mut occupancy: u64) -> u64 {
+    occupancy &= ROOK_MASKS[square];
     occupancy *= ROOK_MAGIC_NUMBERS[square];
     occupancy >>= (64 - ROOK_OCCUPANCY_BIT_COUNT[square]);
 
     let tmp: usize = occupancy.try_into().unwrap();
-    return attack_tables.rook_attacks[tmp][square];
+    return ROOK_ATTACKS[tmp][square];
 }
 
-fn get_queen_attacks(square: usize, mut occupancy: u64, attack_tables: AttackTables) -> u64 {
-    return get_bishop_attacks(square, occupancy, attack_tables)
-        | get_rook_attacks(square, occupancy, attack_tables);
+unsafe fn get_queen_attacks(square: usize, mut occupancy: u64) -> u64 {
+    return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
 }
 
-fn is_square_under_attack(
-    square: usize,
-    side: usize,
-    game: Game,
-    attack_tables: AttackTables,
-) -> usize {
+unsafe fn is_square_under_attack(square: usize, side: usize) -> usize {
     if ((side == Sides::WHITE)
-        && (attack_tables.pawn_attacks[Sides::BLACK][square] & game.bitboards[Pieces::PAWN] != 0))
+        && (PAWN_ATTACKS[Sides::BLACK][square] & BITBOARDS[Pieces::PAWN] != 0))
     {
         return 1;
     }
     if ((side == Sides::BLACK)
-        && (attack_tables.pawn_attacks[Sides::WHITE][square] & game.bitboards[Pieces::pawn] != 0))
+        && (PAWN_ATTACKS[Sides::WHITE][square] & BITBOARDS[Pieces::pawn] != 0))
     {
         return 1;
     }
 
-    if ((attack_tables.knight_attacks[square]
+    if ((KNIGHT_ATTACKS[square]
         & if (side == Sides::WHITE) {
-            game.bitboards[Pieces::KNIGHT]
+            BITBOARDS[Pieces::KNIGHT]
         } else {
-            game.bitboards[Pieces::knight]
-        })
-        != 0)
-    {
-        return 1;
-    }
-
-    if ((attack_tables.king_attacks[square]
-        & if (side == Sides::WHITE) {
-            game.bitboards[Pieces::KING]
-        } else {
-            game.bitboards[Pieces::king]
+            BITBOARDS[Pieces::knight]
         })
         != 0)
     {
         return 1;
     }
 
-    if ((get_bishop_attacks(square, game.occupancies[Sides::BOTH], attack_tables)
+    if ((KING_ATTACKS[square]
         & if (side == Sides::WHITE) {
-            game.bitboards[Pieces::BISHOP]
+            BITBOARDS[Pieces::KING]
         } else {
-            game.bitboards[Pieces::bishop]
+            BITBOARDS[Pieces::king]
         })
         != 0)
     {
         return 1;
     }
-    if ((get_rook_attacks(square, game.occupancies[Sides::BOTH], attack_tables)
+
+    if ((get_bishop_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
         & if (side == Sides::WHITE) {
-            game.bitboards[Pieces::ROOK]
+            BITBOARDS[Pieces::BISHOP]
         } else {
-            game.bitboards[Pieces::rook]
+            BITBOARDS[Pieces::bishop]
         })
         != 0)
     {
         return 1;
     }
-    if ((get_queen_attacks(square, game.occupancies[Sides::BOTH], attack_tables)
+    if ((get_rook_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
         & if (side == Sides::WHITE) {
-            game.bitboards[Pieces::QUEEN]
+            BITBOARDS[Pieces::ROOK]
         } else {
-            game.bitboards[Pieces::queen]
+            BITBOARDS[Pieces::rook]
+        })
+        != 0)
+    {
+        return 1;
+    }
+    if ((get_queen_attacks(square, OCCUPANCIES_BITBOARDS[Sides::BOTH])
+        & if (side == Sides::WHITE) {
+            BITBOARDS[Pieces::QUEEN]
+        } else {
+            BITBOARDS[Pieces::queen]
         })
         != 0)
     {
@@ -1704,21 +1759,21 @@ fn is_square_under_attack(
     0
 }
 
-fn perft_test(depth: usize, mut game: Game, attack_tables: AttackTables) -> u128 {
+unsafe fn perft_test(depth: usize) -> u128 {
     let mut move_list = MoveList::init();
     let mut nodes = 0;
     if (depth == 0) {
         nodes += 1;
     }
-    move_list = generate_moves(move_list, game, attack_tables);
+    move_list = generate_moves(move_list);
     for i in 0..move_list.count {
         let _move = move_list.moves[i];
-        game.make_board_copy();
-        if (make_move(_move, MoveTypes::AllMoves as usize, game, attack_tables) == 0) {
+        make_board_copy();
+        if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
             continue;
         }
-        perft_test(depth - 1, game, attack_tables);
-        game.restore_board_from_copy();
+        perft_test(depth - 1);
+        restore_board_from_copy();
     }
     nodes
 }
@@ -1837,11 +1892,6 @@ struct Game {
     state: GameState,
     game_variables: GameVariables,
     bitboards: [u64; 12],
-    occupancies: [u64; 3],
-    copy_of_bitboards: [u64; 12],
-    copy_of_occupancies: [u64; 3],
-    side: usize,
-    copy_side: usize,
 }
 impl Game {
     fn init() -> Game {
@@ -1849,105 +1899,9 @@ impl Game {
             state: GameState::InProgress,
             game_variables: GameVariables::init(),
             bitboards: [0u64; 12],
-            side: 0,
-            occupancies: [0u64; 3],
-            copy_of_bitboards: [0u64; 12],
-            copy_of_occupancies: [0u64; 3],
-            copy_side: 0,
         }
-    }
-    fn set_starting_board(&mut self) {
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::A2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::B2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::D2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::E2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::F2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::G2 as usize);
-        self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::H2 as usize);
-
-        self.bitboards[Pieces::ROOK] |= (1u64 << SquareLabels::A1 as usize);
-        self.bitboards[Pieces::ROOK] |= (1u64 << SquareLabels::H1 as usize);
-
-        self.bitboards[Pieces::KNIGHT] |= (1u64 << SquareLabels::G1 as usize);
-        self.bitboards[Pieces::KNIGHT] |= (1u64 << SquareLabels::B1 as usize);
-
-        self.bitboards[Pieces::BISHOP] |= (1u64 << SquareLabels::C1 as usize);
-        self.bitboards[Pieces::BISHOP] |= (1u64 << SquareLabels::F1 as usize);
-
-        self.bitboards[Pieces::KING] |= (1u64 << SquareLabels::D1 as usize);
-        self.bitboards[Pieces::QUEEN] |= (1u64 << SquareLabels::E1 as usize);
-
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::A7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::B7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::C7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::D7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::E7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::F7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::G7 as usize);
-        self.bitboards[Pieces::pawn] |= (1u64 << SquareLabels::H7 as usize);
-
-        self.bitboards[Pieces::rook] |= (1u64 << SquareLabels::A8 as usize);
-        self.bitboards[Pieces::rook] |= (1u64 << SquareLabels::H8 as usize);
-
-        self.bitboards[Pieces::knight] |= (1u64 << SquareLabels::G8 as usize);
-        self.bitboards[Pieces::knight] |= (1u64 << SquareLabels::B8 as usize);
-
-        self.bitboards[Pieces::bishop] |= (1u64 << SquareLabels::C8 as usize);
-        self.bitboards[Pieces::bishop] |= (1u64 << SquareLabels::F8 as usize);
-
-        self.bitboards[Pieces::king] |= (1u64 << SquareLabels::E8 as usize);
-        self.bitboards[Pieces::queen] |= (1u64 << SquareLabels::D8 as usize);
-    }
-    fn update_occupancy(&mut self) {
-        for x in 0..6 {
-            self.occupancies[Sides::WHITE] |= self.bitboards[x];
-            self.occupancies[Sides::BLACK] |= self.bitboards[x + 6];
-        }
-        self.occupancies[Sides::BOTH] |= self.occupancies[Sides::WHITE];
-        self.occupancies[Sides::BOTH] |= self.occupancies[Sides::BLACK];
-    }
-    fn make_board_copy(&mut self) {
-        self.copy_of_bitboards = self.bitboards;
-        self.copy_of_occupancies = self.occupancies;
-        self.copy_side = self.side;
-    }
-    fn restore_board_from_copy(&mut self) {
-        self.bitboards = self.copy_of_bitboards;
-        self.occupancies = self.copy_of_occupancies;
-        self.side = self.copy_side;
-    }
-    fn print_board(&self) {
-        println!("");
-        for rank in 0..8 {
-            print!("{} ", 8 - rank);
-            for file in 0..8 {
-                let square_index = (rank << 3) + file;
-
-                let mut piece = 12;
-
-                for i in 0..12 {
-                    if ((self.bitboards[i] & (1u64 << square_index)) != 0) {
-                        piece = i;
-                    }
-                }
-
-                print!(
-                    "{} ",
-                    if piece == 12 {
-                        '.'
-                    } else {
-                        ASCII_PIECES[piece]
-                    }
-                );
-            }
-            println!("");
-        }
-        println!("  A B C D E F G H");
-        println!("Current turn: {}", SIDES[self.side]);
     }
 }
-
 #[derive(Copy, Clone, Debug)]
 enum GameState {
     InProgress,
@@ -1957,12 +1911,16 @@ enum GameState {
 #[derive(Copy, Clone, Debug)]
 struct GameVariables {
     move_list: MoveList,
+    side: u8,
+    occupancies: [u64; 3],
 }
 
 impl GameVariables {
     fn init() -> GameVariables {
         GameVariables {
             move_list: MoveList::init(),
+            side: 0,
+            occupancies: [10000u64; 3],
         }
     }
 }
@@ -1979,18 +1937,14 @@ struct AttackTables {
 impl AttackTables {
     fn init() -> AttackTables {
         AttackTables {
-            pawn_attacks: generate_pawn_attack_tables(),
-            knight_attacks: generate_knight_attack_tables(),
-            king_attacks: generate_king_attack_tables(),
-            bishop_masks: generate_bishop_masks(),
-            rook_masks: generate_rook_masks(),
+            pawn_attacks: [[0u64; 64]; 2],
+            knight_attacks: [0u64; 64],
+            king_attacks: [0u64; 64],
+            bishop_masks: [0u64; 64],
+            rook_masks: [0u64; 64],
             bishop_attacks: [[0u64; 64]; 512],
             rook_attacks: [[0u64; 64]; 4096],
         }
-    }
-    fn add_BR_attacks(&mut self) {
-        self.bishop_attacks = generate_bishop_attack_tables(self.bishop_masks);
-        self.rook_attacks = generate_rook_attack_tables(self.rook_masks);
     }
 }
 #[derive(Copy, Clone, Debug)]
@@ -2015,29 +1969,29 @@ impl MoveList {
             _move.print();
         }
     }
-    fn Move(&self, mut game: Game, attack_tables: AttackTables) {
+    unsafe fn Move(&self) {
         for i in 0..self.count {
             let _move = self.moves[i];
-            game.make_board_copy();
-            if (make_move(_move, MoveTypes::AllMoves as usize, game, attack_tables) == 0) {
+            make_board_copy();
+            if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
                 continue;
             }
             // make_move(_move, MoveTypes::AllMoves as usize);
-            game.print_board();
+            print_board();
             // let mut input: String = String::new();
             // io::stdin().read_line(&mut input).expect("Error");
-            game.restore_board_from_copy();
+            restore_board_from_copy();
         }
     }
-    fn Perft(&self, depth: usize, mut game: Game, attack_tables: AttackTables) {
+    unsafe fn Perft(&self, depth: usize) {
         for i in 0..self.count {
             let _move = self.moves[i];
-            game.make_board_copy();
-            if (make_move(_move, MoveTypes::AllMoves as usize, game, attack_tables) == 0) {
+            make_board_copy();
+            if (make_move(_move, MoveTypes::AllMoves as usize) == 0) {
                 continue;
             }
-            perft_test(depth - 1, game, attack_tables);
-            game.restore_board_from_copy();
+            perft_test(depth - 1);
+            restore_board_from_copy();
         }
     }
 }
