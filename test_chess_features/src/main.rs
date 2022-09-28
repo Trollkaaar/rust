@@ -2,133 +2,20 @@ use rand::Rng;
 use std::{io, num::Wrapping};
 
 fn main() {
-    unsafe {
-        // init();
-        let mut game = Game::init();
-        game.set_starting_board();
-        game.update_occupancy();
-        game.side = 0;
-        // let mut move_list = MoveList::init();
+    let mut game = Game::new();
+    game.init_bitboard();
+    game.update_occupancy();
+    let mut move_list = MoveList::init();
+    game.print_board();
 
-        // print_bitboard(BITBOARDS[Pieces::pawn]);
-        // print_bitboard(PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]);
-        // print_bitboard(
-        //     (BITBOARDS[Pieces::pawn] & PAWN_ATTACKS[Sides::WHITE][SquareLabels::C1 as usize]),
-        // );
-        println!("{}", get_index_of_least_significant_bit(1u64));
-
-        // print_squares_under_attack(1);
+    while (game.state == GameState::InProgress) {
+        let mut input: String = String::new();
+        io::stdin().read_line(&mut input).expect("Error");
+        let parsed_move = parse_move(input.as_str(), &game);
+        if (parsed_move._move != 0) {
+            make_move(parsed_move, MoveTypes::AllMoves as usize, &mut game);
+        }
         game.print_board();
-        println!("");
-        let mut move_list = MoveList::init();
-        // move_list = generate_moves(move_list, &game);
-        // move_list.Move(&mut game);
-
-        // print_squares_under_attack(Sides::WHITE);s
-        // print_bitboard(game.occupancies[Sides::BOTH]);
-        // move_list.Move(&mut game, &attack_tables);
-        // perft_test(1, &mut game);
-        // for x in 0..2 {
-        // let mut move_list = MoveList::init();
-        // move_list = generate_moves(move_list, &game);
-        move_list.PerftTest(2, &mut game);
-        println!(" -{}-", game.game_variables.nodes);
-        //     game.side ^= 1;
-        //     game.game_variables.nodes = 0;
-        // }
-
-        // move_list.print()
-
-        // let mut a = LocalMove::init();
-        // a.encode_move(
-        //     SquareLabels::E3 as usize,
-        //     SquareLabels::E5 as usize,
-        //     Pieces::PAWN,
-        //     Pieces::KNIGHT,
-        //     1,
-        //     1,
-        // );
-        // a.print();
-        // let mut move_list = MoveList::init();
-        // move_list.add(a);
-        // move_list.print()
-
-        // let move_list = Move_list::init();
-        // move_list.add(_move);
-
-        // let mut occupancy = 0u64;
-        // occupancy |= (1u64 << SquareLabels::D6 as usize);
-        // occupancy |= (1u64 << SquareLabels::G4 as usize);
-        // occupancy |= (1u64 << SquareLabels::D2 as usize);
-        // occupancy |= (1u64 << SquareLabels::C4 as usize);
-        // let thin = get_queen_attacks(SquareLabels::D4 as usize, occupancy);
-        // print_bitboard(thin);
-        // println!("\n");
-        // let thing = get_rook_attacks(SquareLabels::C4 as usize, occupancy);
-        // print_bitboard(thing);
-
-        // let mut attack: u64 = mask_bishop_attack(SquareLabels::D4 as usize);
-        // for x in 0..100 {
-        //     let o: u64 = set_occupancy(x, count_bits(attack), attack);
-        //     print_bitboard(o);
-        // }
-
-        // for x in 0..8 {
-        //     for y in 0..8 {
-        //         // let square_index = x * 8 + y;
-        //         // print!("{},", count_bits(mask_rook_attack(square_index)))
-        //     }
-        //     println!("")
-        // }
-        // print_bitboard(get_random_u64_number_with_fewer_nonzero());
-        // print_bitboard(mask_rook_attack(SquareLabels::D4 as usize));
-        // let mut blocking_pieces: u64 = 0u64;
-        // blocking_pieces |= (1u64 << SquareLabels::C4 as usize);
-        // blocking_pieces |= (1u64 << SquareLabels::D7 as usize);
-        // blocking_pieces |= (1u64 << SquareLabels::D2 as usize);
-        // blocking_pieces |= (1u64 << SquareLabels::E4 as usize);
-        // print_bitboard(blocking_pieces);
-        // println!(
-        //     "{:?}",
-        //     Squares[get_index_of_least_significant_bit(blocking_pieces)]
-        // );
-        // println!(
-        //     "{}",
-        //     CONVERT_INDEX_COORDINATE[get_index_of_least_significant_bit(blocking_pieces)]
-        // );
-
-        // println!("{}", count_bits(blocking_pieces));
-        // print_bitboard(mask_rook_attack_with_blocking_pieces(
-        //     SquareLabels::D4 as usize,
-        //     blocking_pieces,
-        // ));
-        // print_bitboard(mask_bishop_attack_with_blocking_pieces(x, 0u64));
-        // for square_index in 0..64 {
-        //     println!(
-        //         "{}u64,",
-        //         find_magic_number(
-        //             square_index,
-        //             BISHOP_OCCUPANCY_BIT_COUNT[square_index],
-        //             Pieces::BISHOP
-        //         )
-        //     );
-        // }
-        // println!("{:?}", bishop_attack_table);
-
-        // let mut bb = 0u64;
-        // for x in (1..9).rev() {
-        //     print!("\"A{}\",", x);
-        //     print!("\"B{}\",", x);
-        //     print!("\"C{}\",", x);
-        //     print!("\"D{}\",", x);
-        //     print!("\"E{}\",", x);
-        //     print!("\"F{}\",", x);
-        //     print!("\"G{}\",", x);
-        //     print!("\"H{}\",", x);
-        //     println!("");
-        // }
-        // println!("{}", bb);
-        // print_bitboard(bb)
     }
 }
 
@@ -163,6 +50,72 @@ const ROOK_OCCUPANCY_BIT_COUNT: [usize; 64] = [
 I will shamelessly admit that these aren't my own magic numbers since i just could not get it to work, don't say i didn't try tho cuz god knows i sat till 3 am trying
 https://github.com/mvanthoor/rustic/blob/master/src/movegen/magics.rs
 */
+const my_own_ROOK_MAGIC_NUMBERS: [u64; 64] = [
+    3459345060259299340u64,
+    9268408187748384800u64,
+    1152956710994837570u64,
+    148619200024281251u64,
+    72623851183277056u64,
+    306244774669582976u64,
+    562949999559430u64,
+    1369164662985261952u64,
+    703758846689408u64,
+    3171730478260895747u64,
+    18304738701352974u64,
+    1729525193708160000u64,
+    288230513796350049u64,
+    4688810162214928640u64,
+    9096538886637312u64,
+    180566215142408200u64,
+    9223409425350395906u64,
+    36736178401083456u64,
+    2468043033262981184u64,
+    343603742920u64,
+    1209216508547317936u64,
+    72057741274792208u64,
+    4774454421281112064u64,
+    2612655269331124224u64,
+    164395405172539968u64,
+    11529215046367316227u64,
+    5531987614240u64,
+    324822127557476928u64,
+    15763149055590404u64,
+    5350561150157210698u64,
+    7147633018898u64,
+    5769111226822950920u64,
+    4921345128880144384u64,
+    879614672175104u64,
+    2252358167823364u64,
+    5633897582952449u64,
+    1140855808u64,
+    144150419709886596u64,
+    3386496887914528u64,
+    881808661086211u64,
+    1136912271147265u64,
+    36882310200559620u64,
+    565220381065216u64,
+    1161928704935567904u64,
+    9007199255035904u64,
+    6917670899005030452u64,
+    72058024621256704u64,
+    4503599898428450u64,
+    9367909446188007488u64,
+    1442560338886656u64,
+    4539334695452738u64,
+    18142018011144u64,
+    35201652633698u64,
+    1152930300706162693u64,
+    39582905139264u64,
+    2375119187969u64,
+    35244635848748u64,
+    70557991437576u64,
+    2382474846720901120u64,
+    2382439404431475072u64,
+    91216171969282368u64,
+    1125909033683264u64,
+    18304706088534080u64,
+    621496749281771556u64,
+];
 const ROOK_MAGIC_NUMBERS: [u64; 64] = [
     324259448050975248u64,
     162139001189302336u64,
@@ -228,6 +181,73 @@ const ROOK_MAGIC_NUMBERS: [u64; 64] = [
     1157988067282792450u64,
     1152939243166828548u64,
     4611967569673330817u64,
+];
+
+const my_own_BISHOP_MAGIC_NUMBERS: [u64; 64] = [
+    883275074265825316u64,
+    1153343888881156112u64,
+    1226250134087008260u64,
+    424694977142784u64,
+    4759267008890046480u64,
+    149252142979356928u64,
+    13606590611456u64,
+    9053398204679168u64,
+    13835081154692252824u64,
+    1152921504944750689u64,
+    36049138790432834u64,
+    9007406491636224u64,
+    9223380970525171712u64,
+    721702394609664004u64,
+    597299538555830548u64,
+    563508303446093u64,
+    153140116955913344u64,
+    1156299207014137856u64,
+    577023702256861708u64,
+    597018467773710337u64,
+    1155173308986032130u64,
+    27024073826500640u64,
+    145258681914228738u64,
+    4611826756888887296u64,
+    4647769860285268544u64,
+    3026419228869314560u64,
+    4630898910422900768u64,
+    595040369583063073u64,
+    290768051138208768u64,
+    70677984583696u64,
+    20974872560665474u64,
+    4909064881229013044u64,
+    2315131856317653002u64,
+    326590426926612482u64,
+    2322203999866880u64,
+    1152921590506206208u64,
+    9223451340209981440u64,
+    288372218654621908u64,
+    734122063219917440u64,
+    147169748993u64,
+    29308582017766016u64,
+    1127295780683776u64,
+    2316540304976777280u64,
+    73218953199007744u64,
+    1155174409032581188u64,
+    92325992462290992u64,
+    1732197059022422032u64,
+    8865355923584u64,
+    397461401771279104u64,
+    288327169733558273u64,
+    145245494621831200u64,
+    2377900611862593728u64,
+    3783164426644097024u64,
+    9511637602832494872u64,
+    14123292279733242022u64,
+    153193033135816704u64,
+    1226104998771851528u64,
+    1180506135407378432u64,
+    2666130979545952272u64,
+    562950088204800u64,
+    369295206094211328u64,
+    41131218166876228u64,
+    288377711784427520u64,
+    585476749849528358u64,
 ];
 
 const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
@@ -296,38 +316,83 @@ const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
     5924513492108288u64,
     90511840181764112u64,
 ];
-// static mut PAWN_ATTACKS: [[u64; 64]; 2] = [[0u64; 64]; 2];
-// static mut KNIGHT_ATTACKS: [u64; 64] = [0u64; 64];
-// static mut KING_ATTACKS: [u64; 64] = [0u64; 64];
-// static mut BISHOP_MASKS: [u64; 64] = [0u64; 64];
-// static mut ROOK_MASKS: [u64; 64] = [0u64; 64];
-// static mut BISHOP_ATTACKS: [[u64; 64]; 512] = [[0u64; 64]; 512];
-// static mut ROOK_ATTACKS: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
-
-// ///Represent all pieces both sides, 6 * 2
-// static mut BITBOARDS: [u64; 12] = [0u64; 12];
-
-// static mut COPY_OF_BITBOARDS: [u64; 12] = [0u64; 12];
-// static mut COPY_OF_game.occupancies: [u64; 3] = [0u64; 3];
-// static mut COPY_OF_SIDE: usize = 0;
-
-///3 occupancy bbs, only black, only white, both
-// static mut game.occupancies: [u64; 3] = [0u64; 3];
 
 // static mut SIDE: usize = 0;
 const SIDES: [&str; 2] = ["White", "Black"];
 
-static mut NODE_COUNT: u128 = 0;
+pub fn GameLoop() {}
 
-// unsafe fn init() {
-//     PAWN_ATTACKS = generate_pawn_attack_tables();
-//     KNIGHT_ATTACKS = generate_knight_attack_tables();
-//     KING_ATTACKS = generate_king_attack_tables();
-//     generate_bishop_masks();
-//     generate_rook_masks();
-//     generate_bishop_attack_tables();
-//     generate_rook_attack_tables();
-// }
+fn parse_move(input: &str, game: &Game) -> LocalMove {
+    let mut move_list = MoveList::init();
+    move_list = generate_moves(move_list, game);
+
+    let (head, tail) = input.trim().split_at(2);
+    let tail_head: &str = "";
+    let tail_tail: &str = "";
+
+    let (source_sq_head, source_sq_tail) = head.split_at(1);
+    let source_head_number: usize = get_value_from_letter(source_sq_head.trim());
+    let source_sq_number = source_sq_tail.to_string().parse::<usize>().unwrap();
+
+    let (tail_head, tail_tail) = tail.split_at(2);
+    let (tail_head_head, tail_head_tail) = tail_head.split_at(1);
+    let target_head_number: usize = get_value_from_letter(tail_head_head);
+    let target_sq_number = tail_head_tail.to_string().parse::<usize>().unwrap();
+    let mut pro_piece: usize = 12;
+    if (input.len() > 4) {
+        pro_piece = get_value_from_letter(tail_tail.trim());
+    }
+
+    let source_sq = source_head_number + (8 - source_sq_number) * 8;
+    let target_sq = target_head_number + (8 - target_sq_number) * 8;
+    println!(
+        "{} {}",
+        CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
+    );
+    for i in 0..move_list.count {
+        let _move = move_list.moves[i];
+
+        if (source_sq == _move.get_move_source()
+            && target_sq == _move.get_move_target()
+            && pro_piece == _move.get_move_promoted())
+        {
+            return _move;
+        }
+        if (source_sq == _move.get_move_source() && target_sq == _move.get_move_target()) {
+            return _move;
+        }
+    }
+    return LocalMove { _move: 0 };
+}
+fn get_value_from_letter(input: &str) -> usize {
+    match input {
+        "A" => return 0,
+        "B" => return 1,
+        "C" => return 2,
+        "D" => return 3,
+        "E" => return 4,
+        "F" => return 5,
+        "G" => return 6,
+        "H" => return 7,
+        "a" => return 0,
+        "b" => return 1,
+        "c" => return 2,
+        "d" => return 3,
+        "e" => return 4,
+        "f" => return 5,
+        "g" => return 6,
+        "h" => return 7,
+        "q" => return Pieces::queen as usize,
+        "b" => return Pieces::bishop as usize,
+        "n" => return Pieces::knight as usize,
+        "r" => return Pieces::rook as usize,
+        "Q" => return Pieces::QUEEN as usize,
+        "B" => return Pieces::BISHOP as usize,
+        "N" => return Pieces::KNIGHT as usize,
+        "R" => return Pieces::ROOK as usize,
+        _ => return 0,
+    };
+}
 ///largely inspired by https://github.com/jordanbray/chess, https://github.com/mkandalf/crust/tree/master/src and https://github.com/bluefeversoft/Vice_Chess_Engine/blob/master/Ch36.zip
 fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
     let mut source_sq: usize = 0;
@@ -338,12 +403,11 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
     for piece in 0..12 {
         let mut current_move = LocalMove::init();
         _bitboard = game.bitboards[piece];
-        // print_bitboard(_bitboard);
 
         if game.side == Sides::WHITE {
             if piece == Pieces::PAWN {
                 while (_bitboard != 0) {
-                    source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                    source_sq = get_index_of_least_significant_bit(_bitboard);
                     target_sq = source_sq - 8;
 
                     if ((target_sq > SquareLabels::A8 as usize)
@@ -423,7 +487,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         & game.occupancies[Sides::BLACK];
 
                     while (_attacks != 0) {
-                        target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                        target_sq = get_index_of_least_significant_bit(_attacks);
 
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
@@ -496,7 +560,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
         } else {
             if piece == Pieces::pawn {
                 while (_bitboard != 0) {
-                    source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                    source_sq = get_index_of_least_significant_bit(_bitboard);
                     target_sq = source_sq + 8;
 
                     if (!(target_sq > SquareLabels::H1 as usize)
@@ -573,7 +637,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         & game.occupancies[Sides::WHITE];
 
                     while (_attacks != 0) {
-                        target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                        target_sq = get_index_of_least_significant_bit(_attacks);
 
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
@@ -648,7 +712,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
             piece == Pieces::knight
         }) {
             while (_bitboard != 0) {
-                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                source_sq = get_index_of_least_significant_bit(_bitboard);
 
                 _attacks = game.attack_tables.knight_attacks[source_sq]
                     & (if (game.side == Sides::WHITE) {
@@ -658,7 +722,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     });
 
                 while (_attacks != 0) {
-                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                    target_sq = get_index_of_least_significant_bit(_attacks);
 
                     if ((if (game.side == Sides::WHITE) {
                         game.occupancies[Sides::BLACK]
@@ -704,7 +768,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
             piece == Pieces::bishop
         }) {
             while (_bitboard != 0) {
-                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                source_sq = get_index_of_least_significant_bit(_bitboard);
 
                 _attacks = get_bishop_attacks(source_sq, game.occupancies[Sides::BOTH], game)
                     & (if (game.side == Sides::WHITE) {
@@ -714,7 +778,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     });
 
                 while (_attacks != 0) {
-                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                    target_sq = get_index_of_least_significant_bit(_attacks);
 
                     if ((if (game.side == Sides::WHITE) {
                         game.occupancies[Sides::BLACK]
@@ -760,7 +824,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
             piece == Pieces::rook
         }) {
             while (_bitboard != 0) {
-                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                source_sq = get_index_of_least_significant_bit(_bitboard);
 
                 _attacks = get_rook_attacks(source_sq, game.occupancies[Sides::BOTH], game)
                     & (if (game.side == Sides::WHITE) {
@@ -770,7 +834,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     });
 
                 while (_attacks != 0) {
-                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                    target_sq = get_index_of_least_significant_bit(_attacks);
 
                     if ((if (game.side == Sides::WHITE) {
                         game.occupancies[Sides::BLACK]
@@ -816,7 +880,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
             piece == Pieces::queen
         }) {
             while (_bitboard != 0) {
-                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                source_sq = get_index_of_least_significant_bit(_bitboard);
 
                 _attacks = get_queen_attacks(source_sq, game.occupancies[Sides::BOTH], game)
                     & (if (game.side == Sides::WHITE) {
@@ -826,7 +890,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     });
 
                 while (_attacks != 0) {
-                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                    target_sq = get_index_of_least_significant_bit(_attacks);
 
                     if ((if (game.side == Sides::WHITE) {
                         game.occupancies[Sides::BLACK]
@@ -872,7 +936,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
             piece == Pieces::king
         }) {
             while (_bitboard != 0) {
-                source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
+                source_sq = get_index_of_least_significant_bit(_bitboard);
 
                 _attacks = (game.attack_tables.king_attacks[source_sq]
                     & (if (game.side == Sides::WHITE) {
@@ -882,7 +946,7 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     }));
 
                 while (_attacks != 0) {
-                    target_sq = get_index_of_least_significant_bit(_attacks) - 1;
+                    target_sq = get_index_of_least_significant_bit(_attacks);
 
                     if ((if (game.side == Sides::WHITE) {
                         game.occupancies[Sides::BLACK]
@@ -981,8 +1045,8 @@ fn make_move(_move: LocalMove, move_flag: usize, mut game: &mut Game) -> usize {
 
         game.side ^= 1;
 
-        let tmp1 = get_index_of_least_significant_bit(game.bitboards[Pieces::king]) - 1;
-        let tmp2 = get_index_of_least_significant_bit(game.bitboards[Pieces::KING]) - 1;
+        let tmp1 = get_index_of_least_significant_bit(game.bitboards[Pieces::king]);
+        let tmp2 = get_index_of_least_significant_bit(game.bitboards[Pieces::KING]);
         if (is_square_under_attack(
             if (game.side == Sides::WHITE) {
                 tmp1
@@ -994,6 +1058,7 @@ fn make_move(_move: LocalMove, move_flag: usize, mut game: &mut Game) -> usize {
         ) != 0)
         {
             game.restore_board_from_copy();
+            game.state = GameState::Check;
             return 0;
         } else {
             return 1;
@@ -1230,7 +1295,7 @@ fn get_index_of_least_significant_bit(bb: u64) -> usize {
     if bb == 0 {
         return 0;
     }
-    return (count_bits(bb ^ (bb - 1)));
+    return (count_bits(bb ^ (bb - 1)) - 1);
 }
 ///Generates an occupancy map depending on the given index/seed, bit_count and attack_mask, courtesy of https://www.chessprogramming.org/Magic_Bitboards
 fn set_occupancy(index: usize, bit_count_in_mask: usize, mut attack_mask: u64) -> u64 {
@@ -1238,7 +1303,7 @@ fn set_occupancy(index: usize, bit_count_in_mask: usize, mut attack_mask: u64) -
 
     let mut count = 0;
     while count < bit_count_in_mask {
-        let square_index = get_index_of_least_significant_bit(attack_mask) - 1;
+        let square_index = get_index_of_least_significant_bit(attack_mask);
 
         if (attack_mask & (1u64 << square_index) != 0) {
             attack_mask = attack_mask ^ (1u64 << square_index);
@@ -1559,7 +1624,7 @@ fn generate_bishop_attack_tables(bishop_masks: [u64; 64]) -> [[u64; 64]; 512] {
     let mut attacks: [[u64; 64]; 512] = [[0u64; 64]; 512];
     for square_index in 0..64 {
         let attack_mask = bishop_masks[square_index];
-        let bit_count_in_mask = count_bits(attack_mask) - 1;
+        let bit_count_in_mask = count_bits(attack_mask);
         let occupancy_indicies = (1 << bit_count_in_mask);
 
         let mut index = 0;
@@ -1590,7 +1655,7 @@ fn generate_rook_attack_tables(rook_masks: [u64; 64]) -> [[u64; 64]; 4096] {
     let mut attacks: [[u64; 64]; 4096] = [[0u64; 64]; 4096];
     for square_index in 0..64 {
         let attack_mask = rook_masks[square_index];
-        let bit_count_in_mask = count_bits(attack_mask) - 1;
+        let bit_count_in_mask = count_bits(attack_mask);
         let occupancy_indicies = (1 << bit_count_in_mask);
 
         let mut index = 0;
@@ -1802,7 +1867,7 @@ enum MoveTypes {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Game {
+pub struct Game {
     state: GameState,
     game_variables: GameVariables,
     bitboards: [u64; 12],
@@ -1812,9 +1877,10 @@ struct Game {
     side: usize,
     copy_side: usize,
     attack_tables: AttackTables,
+    move_list: MoveList,
 }
 impl Game {
-    fn init() -> Game {
+    pub fn new() -> Game {
         Game {
             state: GameState::InProgress,
             game_variables: GameVariables::init(),
@@ -1825,9 +1891,10 @@ impl Game {
             copy_of_occupancies: [0u64; 3],
             copy_side: 0,
             attack_tables: AttackTables::init(),
+            move_list: MoveList::init(),
         }
     }
-    fn set_starting_board(&mut self) {
+    pub fn init_bitboard(&mut self) {
         self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::A2 as usize);
         self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::B2 as usize);
         self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::C2 as usize);
@@ -1870,7 +1937,7 @@ impl Game {
         self.bitboards[Pieces::king] |= (1u64 << SquareLabels::E8 as usize);
         self.bitboards[Pieces::queen] |= (1u64 << SquareLabels::D8 as usize);
     }
-    fn update_occupancy(&mut self) {
+    pub fn update_occupancy(&mut self) {
         for x in 0..6 {
             self.occupancies[Sides::WHITE] |= self.bitboards[x];
             self.occupancies[Sides::BLACK] |= self.bitboards[x + 6];
@@ -1890,8 +1957,10 @@ impl Game {
     }
     fn print_board(&self) {
         println!("");
+        println!("    A B C D E F G H");
+        println!("    ----------------");
         for rank in 0..8 {
-            print!("{} ", 8 - rank);
+            print!("{}  |", 8 - rank);
             for file in 0..8 {
                 let square_index = (rank << 3) + file;
 
@@ -1902,7 +1971,6 @@ impl Game {
                         piece = i;
                     }
                 }
-
                 print!(
                     "{} ",
                     if piece == 12 {
@@ -1912,14 +1980,16 @@ impl Game {
                     }
                 );
             }
+            print!("|  {}", 8 - rank);
             println!("");
         }
-        println!("  A B C D E F G H");
-        println!("Current turn: {}", SIDES[self.side]);
+        println!("    ----------------");
+        println!("    A B C D E F G H");
+        println!("\nCurrent turn: {}", SIDES[self.side]);
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum GameState {
     InProgress,
     Check,
@@ -1979,9 +2049,11 @@ impl MoveList {
         self.count += 1;
     }
     fn print(&self) {
+        println!("{}", self.count);
         for i in 0..self.count {
             let _move = self.moves[i];
             _move.print();
+            println!("");
         }
     }
     fn Move(&self, mut game: &mut Game) {
@@ -1993,6 +2065,8 @@ impl MoveList {
             }
             // make_move(_move, MoveTypes::AllMoves as usize);
             game.print_board();
+            // print_bitboard(game.bitboards[Pieces::pawn]);
+            // print_bitboard(game.bitboards[Pieces::knight]);
             let mut input: String = String::new();
             io::stdin().read_line(&mut input).expect("Error");
             game.restore_board_from_copy();
@@ -2006,12 +2080,12 @@ impl MoveList {
 
         let mut move_list = MoveList::init();
         move_list = generate_moves(move_list, game);
+        move_list.print();
         // move_list.Move(&mut game);
         for i in 0..move_list.count {
-            let _move = move_list.moves[i];
             game.make_board_copy();
 
-            if (make_move(_move, MoveTypes::AllMoves as usize, game) == 0) {
+            if (make_move(move_list.moves[i], MoveTypes::AllMoves as usize, game) == 0) {
                 continue;
             }
 
@@ -2022,21 +2096,20 @@ impl MoveList {
     fn PerftTest(&self, depth: usize, mut game: &mut Game) {
         let mut move_list = MoveList::init();
         move_list = generate_moves(move_list, game);
+        move_list.print();
+
         // move_list.Move(&mut game);
         for i in 0..move_list.count {
-            let _move = move_list.moves[i];
             game.make_board_copy();
-
-            if (make_move(_move, MoveTypes::AllMoves as usize, game) == 0) {
+            if (make_move(move_list.moves[i], MoveTypes::AllMoves as usize, game) == 0) {
                 continue;
             }
             let some_nodes: u128 = game.game_variables.nodes;
-
             self.Perft(depth - 1, game);
             let old_nodes: u128 = game.game_variables.nodes - some_nodes;
             game.restore_board_from_copy();
 
-            _move.print();
+            move_list.moves[i].print();
             print!(" |{}\n", old_nodes);
         }
     }
