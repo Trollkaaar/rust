@@ -5,23 +5,28 @@ fn main() {
     let mut game = Game::new();
     game.init_bitboard();
     game.update_occupancy();
-    game.print_board();
-
-    // while (game.state == GameState::InProgress) {
-    //     let mut input: String = String::new();
-    //     io::stdin().read_line(&mut input).expect("Error");
-    //     let parsed_move = parse_move(input.as_str(), &game);
-    //     if (parsed_move._move != 0) {
-    //         internal_make_move(parsed_move, &mut game);
-    //     }
-    //     game.print_board();
-    // }
-    let tmp = game.get_possible_moves();
-    for i in tmp {
-        println!("{:?}", i.print());
-    }
-    // game.make_move("A2A4");
+    let moves = game.get_possible_moves();
+    assert_eq!(moves.len(), 20)
+    // let mut game = Game::new();
+    // game.init_bitboard();
+    // game.update_occupancy();
     // game.print_board();
+
+    // // while (game.state == GameState::InProgress) {
+    // //     let mut input: String = String::new();
+    // //     io::stdin().read_line(&mut input).expect("Error");
+    // //     let parsed_move = parse_move(input.as_str(), &game);
+    // //     if (parsed_move._move != 0) {
+    // //         internal_make_move(parsed_move, &mut game);
+    // //     }
+    // //     game.print_board();
+    // // }
+    // let tmp = game.get_possible_moves();
+    // for i in tmp {
+    //     println!("{:?}", i.print());
+    // }
+    // // game.make_move("A2A4");
+    // // game.print_board();
 }
 
 const ASCII_PIECES: [char; 13] = [
