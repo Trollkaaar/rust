@@ -6,28 +6,14 @@ fn main() {
     let mut game = Game::new();
     game.init_bitboard();
     game.update_occupancy();
-    let moves = game.get_possible_moves();
-    assert_eq!(moves.len(), 20)
-    // let mut game = Game::new();
-    // game.init_bitboard();
-    // game.update_occupancy();
-    // game.print_board();
-
-    // // while (game.state == GameState::InProgress) {
-    // //     let mut input: String = String::new();
-    // //     io::stdin().read_line(&mut input).expect("Error");
-    // //     let parsed_move = parse_move(input.as_str(), &game);
-    // //     if (parsed_move._move != 0) {
-    // //         internal_make_move(parsed_move, &mut game);
-    // //     }
-    // //     game.print_board();
-    // // }
-    // let tmp = game.get_possible_moves();
-    // for i in tmp {
-    //     println!("{:?}", i.print());
-    // }
-    // // game.make_move("A2A4");
-    // // game.print_board();
+    game.make_move("E2E4");
+    let tmp = (get_index_of_least_significant_bit(game.bitboards[0]) as u64);
+    print_bitboard(game.bitboards[0]);
+    print_bitboard((1u64 << 36));
+    assert_eq!(
+        (game.bitboards[0] & (1u64 << 36)),
+        (1u64 << SquareLabels::E4 as u64)
+    );
 }
 
 const ASCII_PIECES: [char; 13] = [
@@ -331,7 +317,30 @@ const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
 // static mut SIDE: usize = 0;
 const SIDES: [&str; 2] = ["White", "Black"];
 
-pub fn GameLoop() {}
+pub fn GameLoop() {
+    // let moves = game.get_possible_moves();
+    // assert_eq!(moves.len(), 20)
+    // let mut game = Game::new();
+    // game.init_bitboard();
+    // game.update_occupancy();
+    // game.print_board();
+
+    // // while (game.state == GameState::InProgress) {
+    // //     let mut input: String = String::new();
+    // //     io::stdin().read_line(&mut input).expect("Error");
+    // //     let parsed_move = parse_move(input.as_str(), &game);
+    // //     if (parsed_move._move != 0) {
+    // //         internal_make_move(parsed_move, &mut game);
+    // //     }
+    // //     game.print_board();
+    // // }
+    // let tmp = game.get_possible_moves();
+    // for i in tmp {
+    //     println!("{:?}", i.print());
+    // }
+    // // game.make_move("A2A4");
+    // // game.print_board();
+}
 
 fn parse_move(input: &str, game: &Game) -> LocalMove {
     let mut move_list = MoveList::init();
