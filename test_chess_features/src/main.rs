@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::fmt;
 use std::{io, num::Wrapping};
 
 fn main() {
@@ -1764,13 +1765,14 @@ fn is_square_under_attack(square: usize, side: usize, game: &Game) -> usize {
     0
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct Sides;
 impl Sides {
     const WHITE: usize = 0;
     const BLACK: usize = 1;
     const BOTH: usize = 2;
 }
-
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct Pieces;
 impl Pieces {
     const PAWN: usize = 0;
@@ -1787,6 +1789,7 @@ impl Pieces {
     const king: usize = 11;
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum AsciiPieces {
     P,
     N,
@@ -1801,6 +1804,7 @@ enum AsciiPieces {
     q,
     k,
 }
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum SquareLabels {
     A8,
     B8,
@@ -1868,13 +1872,13 @@ enum SquareLabels {
     H1,
 }
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum MoveTypes {
     AllMoves,
     OnlyCapture,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Game {
     state: GameState,
     game_variables: GameVariables,
@@ -2017,7 +2021,7 @@ pub enum GameState {
     Check,
     GameOver,
 }
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct GameVariables {
     move_list: MoveList,
     nodes: u128,
@@ -2031,7 +2035,7 @@ impl GameVariables {
         }
     }
 }
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct AttackTables {
     pawn_attacks: [[u64; 64]; 2],
     knight_attacks: [u64; 64],
@@ -2054,7 +2058,7 @@ impl AttackTables {
         }
     }
 }
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct MoveList {
     moves: [LocalMove; 256],
     count: usize,
@@ -2150,7 +2154,7 @@ impl MoveList {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct LocalMove {
     _move: usize,
 }
