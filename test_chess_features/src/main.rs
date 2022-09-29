@@ -5,18 +5,23 @@ fn main() {
     let mut game = Game::new();
     game.init_bitboard();
     game.update_occupancy();
-    let mut move_list = MoveList::init();
     game.print_board();
 
-    while (game.state == GameState::InProgress) {
-        let mut input: String = String::new();
-        io::stdin().read_line(&mut input).expect("Error");
-        let parsed_move = parse_move(input.as_str(), &game);
-        if (parsed_move._move != 0) {
-            make_move(parsed_move, MoveTypes::AllMoves as usize, &mut game);
-        }
-        game.print_board();
+    // while (game.state == GameState::InProgress) {
+    //     let mut input: String = String::new();
+    //     io::stdin().read_line(&mut input).expect("Error");
+    //     let parsed_move = parse_move(input.as_str(), &game);
+    //     if (parsed_move._move != 0) {
+    //         internal_make_move(parsed_move, &mut game);
+    //     }
+    //     game.print_board();
+    // }
+    let tmp = game.get_possible_moves();
+    for i in tmp {
+        println!("{:?}", i.print());
     }
+    // game.make_move("A2A4");
+    // game.print_board();
 }
 
 const ASCII_PIECES: [char; 13] = [
@@ -345,10 +350,6 @@ fn parse_move(input: &str, game: &Game) -> LocalMove {
 
     let source_sq = source_head_number + (8 - source_sq_number) * 8;
     let target_sq = target_head_number + (8 - target_sq_number) * 8;
-    println!(
-        "{} {}",
-        CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
-    );
     for i in 0..move_list.count {
         let _move = move_list.moves[i];
 
@@ -990,8 +991,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
     move_list
 }
 
-fn make_move(_move: LocalMove, move_flag: usize, mut game: &mut Game) -> usize {
-    if (move_flag == MoveTypes::AllMoves as usize) {
+fn internal_make_move(_move: LocalMove, mut game: &mut Game) -> usize {
+    let move_flag = MoveTypes::AllMoves;
+    if (move_flag == MoveTypes::AllMoves) {
         game.make_board_copy();
         let source_sq = _move.get_move_source();
         let target_sq = _move.get_move_target();
@@ -1065,7 +1067,7 @@ fn make_move(_move: LocalMove, move_flag: usize, mut game: &mut Game) -> usize {
         }
     } else {
         if (_move.get_move_capture_flag() != 0) {
-            make_move(_move, MoveTypes::AllMoves as usize, game);
+            internal_make_move(_move, game);
             return 0;
         } else {
             return 0;
@@ -1861,6 +1863,7 @@ enum SquareLabels {
     H1,
 }
 
+#[derive(PartialEq, PartialOrd)]
 enum MoveTypes {
     AllMoves,
     OnlyCapture,
@@ -1893,6 +1896,20 @@ impl Game {
             attack_tables: AttackTables::init(),
             move_list: MoveList::init(),
         }
+    }
+    pub fn make_move(&mut self, move_string: &str) {
+        let parsed_move = parse_move(move_string, self);
+        if (parsed_move._move != 0) {
+            internal_make_move(parsed_move, self);
+        }
+    }
+    pub fn get_game_state(&mut self) -> GameState {
+        return self.state;
+    }
+    pub fn get_possible_moves(&mut self) -> Vec<LocalMove> {
+        let tmp = generate_moves(self.move_list, &self);
+        let tmp2 = tmp.internal_Move(self);
+        tmp2
     }
     pub fn init_bitboard(&mut self) {
         self.bitboards[Pieces::PAWN] |= (1u64 << SquareLabels::A2 as usize);
@@ -1990,7 +2007,7 @@ impl Game {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-enum GameState {
+pub enum GameState {
     InProgress,
     Check,
     GameOver,
@@ -2060,7 +2077,7 @@ impl MoveList {
         for i in 0..self.count {
             let _move = self.moves[i];
             game.make_board_copy();
-            if (make_move(_move, MoveTypes::AllMoves as usize, &mut game) == 0) {
+            if (internal_make_move(_move, &mut game) == 0) {
                 continue;
             }
             // make_move(_move, MoveTypes::AllMoves as usize);
@@ -2071,6 +2088,19 @@ impl MoveList {
             io::stdin().read_line(&mut input).expect("Error");
             game.restore_board_from_copy();
         }
+    }
+    fn internal_Move(&self, mut game: &mut Game) -> Vec<LocalMove> {
+        let mut v: Vec<LocalMove> = Vec::new();
+        for i in 0..self.count {
+            let _move = self.moves[i];
+            game.make_board_copy();
+            if (internal_make_move(_move, &mut game) == 0) {
+                continue;
+            }
+            v.push(_move);
+            game.restore_board_from_copy();
+        }
+        v
     }
     fn Perft(&self, depth: usize, mut game: &mut Game) {
         if (depth == 0) {
@@ -2085,7 +2115,7 @@ impl MoveList {
         for i in 0..move_list.count {
             game.make_board_copy();
 
-            if (make_move(move_list.moves[i], MoveTypes::AllMoves as usize, game) == 0) {
+            if (internal_make_move(move_list.moves[i], game) == 0) {
                 continue;
             }
 
@@ -2101,7 +2131,7 @@ impl MoveList {
         // move_list.Move(&mut game);
         for i in 0..move_list.count {
             game.make_board_copy();
-            if (make_move(move_list.moves[i], MoveTypes::AllMoves as usize, game) == 0) {
+            if (internal_make_move(move_list.moves[i], game) == 0) {
                 continue;
             }
             let some_nodes: u128 = game.game_variables.nodes;
@@ -2116,7 +2146,7 @@ impl MoveList {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct LocalMove {
+pub struct LocalMove {
     _move: usize,
 }
 impl LocalMove {
@@ -2144,30 +2174,30 @@ impl LocalMove {
         tmp
     }
 
-    fn get_move_source(&self) -> usize {
+    pub fn get_move_source(&self) -> usize {
         return (self._move & 0x3f);
     }
 
-    fn get_move_target(&self) -> usize {
+    pub fn get_move_target(&self) -> usize {
         return (self._move & 0xfc0) >> 6;
     }
 
-    fn get_move_piece(&self) -> usize {
+    pub fn get_move_piece(&self) -> usize {
         return (self._move & 0xf000) >> 12;
     }
 
-    fn get_move_promoted(&self) -> usize {
+    pub fn get_move_promoted(&self) -> usize {
         return (self._move & 0xf0000) >> 16;
     }
-    fn get_move_capture_flag(&self) -> usize {
+    pub fn get_move_capture_flag(&self) -> usize {
         return if (self._move & 0xf100000) != 0 { 1 } else { 0 };
     }
 
-    fn get_move_double_push_flag(&self) -> usize {
+    pub fn get_move_double_push_flag(&self) -> usize {
         return if (self._move & 0xf200000) != 0 { 1 } else { 0 };
     }
 
-    fn print(&self) {
+    pub fn print(&self) {
         print!(
             "{} {} {} {} {} {}",
             CONVERT_INDEX_COORDINATE[self.get_move_source()],
