@@ -2031,8 +2031,8 @@ impl Game {
                 let mut str = "/";
                 fen.push_str(str);
             }
+            let mut empty_count = 0;
             for file in 0..8 {
-                let mut empty_count = 0;
                 let square_index = (rank << 3) + file;
 
                 let mut piece = 12;
@@ -2044,10 +2044,17 @@ impl Game {
                 }
                 if piece == 12 {
                     empty_count += 1;
-                    continue;
+                    if (file != 7) {
+                        continue;
+                    }
                 }
-                fen.push_str(empty_count.to_string().as_str());
-                fen.push(ASCII_PIECES[piece])
+                if (empty_count != 0) {
+                    fen.push_str(empty_count.to_string().as_str());
+                }
+                if (piece != 12) {
+                    fen.push(ASCII_PIECES[piece]);
+                }
+                empty_count = 0;
             }
         }
         fen
