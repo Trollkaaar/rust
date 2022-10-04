@@ -6,14 +6,15 @@ fn main() {
     let mut game = Game::new();
     game.init_bitboard();
     game.update_occupancy();
-    game.make_move("E2E4");
-    let tmp = (get_index_of_least_significant_bit(game.bitboards[0]) as u64);
-    print_bitboard(game.bitboards[0]);
-    print_bitboard((1u64 << 36));
-    assert_eq!(
-        (game.bitboards[0] & (1u64 << 36)),
-        (1u64 << SquareLabels::E4 as u64)
-    );
+    let thing = game.make_move("E2E4");
+    println!("{}", thing);
+    // let tmp = (get_index_of_least_significant_bit(game.bitboards[0]) as u64);
+    // print_bitboard(game.bitboards[0]);
+    // print_bitboard((1u64 << 36));
+    // assert_eq!(
+    //     (game.bitboards[0] & (1u64 << 36)),
+    //     (1u64 << SquareLabels::E4 as u64)
+    // );
 }
 
 const ASCII_PIECES: [char; 13] = [
@@ -1915,11 +1916,12 @@ impl Game {
             move_list: MoveList::init(),
         }
     }
-    pub fn make_move(&mut self, move_string: &str) {
+    pub fn make_move(&mut self, move_string: &str) -> String {
         let parsed_move = parse_move(move_string, self);
         if (parsed_move._move != 0) {
             internal_make_move(parsed_move, self);
         }
+        self.boardstate_fen()
     }
     pub fn get_game_state(&mut self) -> GameState {
         return self.state;
@@ -2021,6 +2023,34 @@ impl Game {
         println!("    ----------------");
         println!("    A B C D E F G H");
         println!("\nCurrent turn: {}", SIDES[self.side]);
+    }
+    fn boardstate_fen(&self) -> String {
+        let mut fen: String = "".to_owned();
+        for rank in 0..8 {
+            if rank != 0 {
+                let mut str = "/";
+                fen.push_str(str);
+            }
+            for file in 0..8 {
+                let mut empty_count = 0;
+                let square_index = (rank << 3) + file;
+
+                let mut piece = 12;
+
+                for i in 0..12 {
+                    if ((self.bitboards[i] & (1u64 << square_index)) != 0) {
+                        piece = i;
+                    }
+                }
+                if piece == 12 {
+                    empty_count += 1;
+                    continue;
+                }
+                fen.push_str(empty_count.to_string().as_str());
+                fen.push(ASCII_PIECES[piece])
+            }
+        }
+        fen
     }
 }
 
