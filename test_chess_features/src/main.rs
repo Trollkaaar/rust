@@ -1,6 +1,5 @@
 use rand::Rng;
-use std::fmt;
-use std::{io, num::Wrapping};
+use std::io;
 
 fn main() {
     let mut game = Game::new();
@@ -48,72 +47,6 @@ const ROOK_OCCUPANCY_BIT_COUNT: [usize; 64] = [
 I will shamelessly admit that these aren't my own magic numbers since i just could not get it to work, don't say i didn't try tho cuz god knows i sat till 3 am trying
 https://github.com/mvanthoor/rustic/blob/master/src/movegen/magics.rs
 */
-const my_own_ROOK_MAGIC_NUMBERS: [u64; 64] = [
-    3459345060259299340u64,
-    9268408187748384800u64,
-    1152956710994837570u64,
-    148619200024281251u64,
-    72623851183277056u64,
-    306244774669582976u64,
-    562949999559430u64,
-    1369164662985261952u64,
-    703758846689408u64,
-    3171730478260895747u64,
-    18304738701352974u64,
-    1729525193708160000u64,
-    288230513796350049u64,
-    4688810162214928640u64,
-    9096538886637312u64,
-    180566215142408200u64,
-    9223409425350395906u64,
-    36736178401083456u64,
-    2468043033262981184u64,
-    343603742920u64,
-    1209216508547317936u64,
-    72057741274792208u64,
-    4774454421281112064u64,
-    2612655269331124224u64,
-    164395405172539968u64,
-    11529215046367316227u64,
-    5531987614240u64,
-    324822127557476928u64,
-    15763149055590404u64,
-    5350561150157210698u64,
-    7147633018898u64,
-    5769111226822950920u64,
-    4921345128880144384u64,
-    879614672175104u64,
-    2252358167823364u64,
-    5633897582952449u64,
-    1140855808u64,
-    144150419709886596u64,
-    3386496887914528u64,
-    881808661086211u64,
-    1136912271147265u64,
-    36882310200559620u64,
-    565220381065216u64,
-    1161928704935567904u64,
-    9007199255035904u64,
-    6917670899005030452u64,
-    72058024621256704u64,
-    4503599898428450u64,
-    9367909446188007488u64,
-    1442560338886656u64,
-    4539334695452738u64,
-    18142018011144u64,
-    35201652633698u64,
-    1152930300706162693u64,
-    39582905139264u64,
-    2375119187969u64,
-    35244635848748u64,
-    70557991437576u64,
-    2382474846720901120u64,
-    2382439404431475072u64,
-    91216171969282368u64,
-    1125909033683264u64,
-    18304706088534080u64,
-    621496749281771556u64,
-];
 const ROOK_MAGIC_NUMBERS: [u64; 64] = [
     324259448050975248u64,
     162139001189302336u64,
@@ -179,73 +112,6 @@ const ROOK_MAGIC_NUMBERS: [u64; 64] = [
     1157988067282792450u64,
     1152939243166828548u64,
     4611967569673330817u64,
-];
-
-const my_own_BISHOP_MAGIC_NUMBERS: [u64; 64] = [
-    883275074265825316u64,
-    1153343888881156112u64,
-    1226250134087008260u64,
-    424694977142784u64,
-    4759267008890046480u64,
-    149252142979356928u64,
-    13606590611456u64,
-    9053398204679168u64,
-    13835081154692252824u64,
-    1152921504944750689u64,
-    36049138790432834u64,
-    9007406491636224u64,
-    9223380970525171712u64,
-    721702394609664004u64,
-    597299538555830548u64,
-    563508303446093u64,
-    153140116955913344u64,
-    1156299207014137856u64,
-    577023702256861708u64,
-    597018467773710337u64,
-    1155173308986032130u64,
-    27024073826500640u64,
-    145258681914228738u64,
-    4611826756888887296u64,
-    4647769860285268544u64,
-    3026419228869314560u64,
-    4630898910422900768u64,
-    595040369583063073u64,
-    290768051138208768u64,
-    70677984583696u64,
-    20974872560665474u64,
-    4909064881229013044u64,
-    2315131856317653002u64,
-    326590426926612482u64,
-    2322203999866880u64,
-    1152921590506206208u64,
-    9223451340209981440u64,
-    288372218654621908u64,
-    734122063219917440u64,
-    147169748993u64,
-    29308582017766016u64,
-    1127295780683776u64,
-    2316540304976777280u64,
-    73218953199007744u64,
-    1155174409032581188u64,
-    92325992462290992u64,
-    1732197059022422032u64,
-    8865355923584u64,
-    397461401771279104u64,
-    288327169733558273u64,
-    145245494621831200u64,
-    2377900611862593728u64,
-    3783164426644097024u64,
-    9511637602832494872u64,
-    14123292279733242022u64,
-    153193033135816704u64,
-    1226104998771851528u64,
-    1180506135407378432u64,
-    2666130979545952272u64,
-    562950088204800u64,
-    369295206094211328u64,
-    41131218166876228u64,
-    288377711784427520u64,
-    585476749849528358u64,
 ];
 
 const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
@@ -315,34 +181,9 @@ const BISHOP_MAGIC_NUMBERS: [u64; 64] = [
     90511840181764112u64,
 ];
 
-// static mut SIDE: usize = 0;
 const SIDES: [&str; 2] = ["White", "Black"];
 
-pub fn GameLoop() {
-    // let moves = game.get_possible_moves();
-    // assert_eq!(moves.len(), 20)
-    // let mut game = Game::new();
-    // game.init_bitboard();
-    // game.update_occupancy();
-    // game.print_board();
-
-    // // while (game.state == GameState::InProgress) {
-    // //     let mut input: String = String::new();
-    // //     io::stdin().read_line(&mut input).expect("Error");
-    // //     let parsed_move = parse_move(input.as_str(), &game);
-    // //     if (parsed_move._move != 0) {
-    // //         internal_make_move(parsed_move, &mut game);
-    // //     }
-    // //     game.print_board();
-    // // }
-    // let tmp = game.get_possible_moves();
-    // for i in tmp {
-    //     println!("{:?}", i.print());
-    // }
-    // // game.make_move("A2A4");
-    // // game.print_board();
-}
-
+#[warn(unused_variables)]
 fn parse_move(input: &str, game: &Game) -> LocalMove {
     let mut move_list = MoveList::init();
     move_list = generate_moves(move_list, game);
@@ -361,7 +202,7 @@ fn parse_move(input: &str, game: &Game) -> LocalMove {
     let target_sq_number = tail_head_tail.to_string().parse::<usize>().unwrap();
     let mut pro_piece: usize = 12;
     if (input.len() > 4) {
-        pro_piece = get_value_from_letter(tail_tail.trim());
+        pro_piece = get_value_from_letter_position(tail_tail.trim());
     }
 
     let source_sq = source_head_number + (8 - source_sq_number) * 8;
@@ -399,6 +240,11 @@ fn get_value_from_letter(input: &str) -> usize {
         "f" => return 5,
         "g" => return 6,
         "h" => return 7,
+        _ => return 0,
+    };
+}
+fn get_value_from_letter_position(input: &str) -> usize {
+    match input {
         "q" => return Pieces::queen as usize,
         "b" => return Pieces::bishop as usize,
         "n" => return Pieces::knight as usize,
@@ -412,8 +258,8 @@ fn get_value_from_letter(input: &str) -> usize {
 }
 ///largely inspired by https://github.com/jordanbray/chess, https://github.com/mkandalf/crust/tree/master/src and https://github.com/bluefeversoft/Vice_Chess_Engine/blob/master/Ch36.zip
 fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
-    let mut source_sq: usize = 0;
-    let mut target_sq: usize = 0;
+    let mut source_sq: usize;
+    let mut target_sq: usize;
     let mut _bitboard: u64 = 0;
     let mut _attacks: u64 = 0;
 
@@ -433,11 +279,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
                         {
-                            // println!(
-                            //     "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -478,11 +319,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            // println!(
-                            //     "Push Pawn: {} -> {}",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                             move_list.add(current_move);
 
@@ -490,11 +326,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                                 && source_sq <= SquareLabels::H2 as usize)
                                 && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq - 8)) == 0))
                             {
-                                // println!(
-                                //     "MEGA PAWN RUSHUUUU: {} -> {}",
-                                //     CONVERT_INDEX_COORDINATE[source_sq],
-                                //     CONVERT_INDEX_COORDINATE[target_sq - 8]
-                                // );
                                 current_move.encode_move(source_sq, target_sq - 8, piece, 12, 0, 1);
                                 move_list.add(current_move);
                             }
@@ -509,11 +340,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         if (source_sq >= SquareLabels::A7 as usize
                             && source_sq <= SquareLabels::H7 as usize)
                         {
-                            // println!(
-                            //     "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -551,11 +377,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            // println!(
-                            //     "Capture Pawn: {} -> {}",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                             move_list.add(current_move);
                         }
@@ -586,11 +407,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
                         {
-                            // println!(
-                            //     "Promote Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -628,11 +444,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            // println!(
-                            //     "Push Pawn: {} -> {}",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                             move_list.add(current_move);
 
@@ -640,11 +451,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                                 && source_sq <= SquareLabels::H7 as usize)
                                 && ((game.occupancies[Sides::BOTH] & (1u64 << target_sq + 8)) == 0))
                             {
-                                // println!(
-                                //     "MEGA PAWN RUSHUUUU: {} -> {}",
-                                //     CONVERT_INDEX_COORDINATE[source_sq],
-                                //     CONVERT_INDEX_COORDINATE[target_sq + 8]
-                                // );
                                 current_move.encode_move(source_sq, target_sq + 8, piece, 12, 0, 1);
                                 move_list.add(current_move);
                             }
@@ -659,11 +465,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                         if (source_sq >= SquareLabels::A2 as usize
                             && source_sq <= SquareLabels::H2 as usize)
                         {
-                            // println!(
-                            //     "Promote Capture Pawn: {} -> {}\nQueen\nRook\nBishop\nKnight",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(
                                 source_sq,
                                 target_sq,
@@ -701,11 +502,6 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                             );
                             move_list.add(current_move);
                         } else {
-                            // println!(
-                            //     "Capture Pawn: {} -> {}",
-                            //     CONVERT_INDEX_COORDINATE[source_sq],
-                            //     CONVERT_INDEX_COORDINATE[target_sq]
-                            // );
                             current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                             move_list.add(current_move);
                         }
@@ -748,19 +544,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        // println!(
-                        //     "Piece Move: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        // println!(
-                        //     "Piece Capture: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -804,19 +590,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        // println!(
-                        //     "Piece Move: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        // println!(
-                        //     "Piece Capture: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -860,19 +636,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        // println!(
-                        //     "Piece Move: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        // println!(
-                        //     "Piece Capture: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -916,19 +682,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        // println!(
-                        //     "Piece Move: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        // println!(
-                        //     "Piece Capture: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -972,19 +728,9 @@ fn generate_moves(mut move_list: MoveList, game: &Game) -> MoveList {
                     } & (1u64 << target_sq))
                         == 0)
                     {
-                        // println!(
-                        //     "Piece Move: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
                         move_list.add(current_move);
                     } else {
-                        // println!(
-                        //     "Piece Capture: {} -> {}",
-                        //     CONVERT_INDEX_COORDINATE[source_sq],
-                        //     CONVERT_INDEX_COORDINATE[target_sq]
-                        // );
                         current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
                         move_list.add(current_move);
                     }
@@ -1090,69 +836,6 @@ fn internal_make_move(_move: LocalMove, mut game: &mut Game) -> usize {
         }
     }
 }
-
-// unsafe fn generate_moves_not_pawn(
-// piece: usize,
-// mut _bitboard: u64,
-// mut move_list: MoveList,
-//     mut _attacks: u64,
-//     mut current_move: LocalMove,
-// ) -> (u64, MoveList) {
-//     if (if (SIDE == Sides::WHITE) {
-//         piece == Pieces::KNIGHT
-//     } else {
-//         piece == Pieces::knight
-//     }) {
-//         while (_bitboard != 0) {
-//             source_sq = get_index_of_least_significant_bit(_bitboard) - 1;
-
-//             _attacks = KNIGHT_ATTACKS[source_sq]
-//                 & (if (SIDE == Sides::WHITE) {
-//                     !game.occupancies[Sides::WHITE]
-//                 } else {
-//                     !game.occupancies[Sides::BLACK]
-//                 });
-
-//             while (_attacks != 0) {
-//                 target_sq = get_index_of_least_significant_bit(_attacks) - 1;
-
-//                 if ((if (SIDE == Sides::WHITE) {
-//                     game.occupancies[Sides::BLACK]
-//                 } else {
-//                     game.occupancies[Sides::WHITE]
-//                 } & (1u64 << target_sq))
-//                     == 0)
-//                 {
-//                     println!(
-//                         "Piece Move: {} -> {}",
-//                         CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
-//                     );
-//                     current_move.encode_move(source_sq, target_sq, piece, 12, 0, 0);
-//                     move_list.add(current_move);
-//                 } else {
-//                     println!(
-//                         "Piece Capture: {} -> {}",
-//                         CONVERT_INDEX_COORDINATE[source_sq], CONVERT_INDEX_COORDINATE[target_sq]
-//                     );
-//                     current_move.encode_move(source_sq, target_sq, piece, 12, 1, 0);
-//                     move_list.add(current_move);
-//                 }
-
-//                 if (_attacks & (1u64 << target_sq) != 0) {
-//                     _attacks ^= (1u64 << target_sq);
-//                 } else {
-//                     0;
-//                 }
-//             }
-
-//             if (_bitboard & (1u64 << source_sq) != 0) {
-//                 _bitboard ^= (1u64 << source_sq);
-//             } else {
-//                 0;
-//             }
-//         }
-//     }
-// }
 
 fn generate_bishop_masks() -> [u64; 64] {
     let mut masks: [u64; 64] = [0u64; 64];
@@ -1783,7 +1466,7 @@ impl Sides {
     const BOTH: usize = 2;
 }
 #[derive(Copy, Clone, Debug, PartialEq)]
-struct Pieces;
+pub struct Pieces;
 impl Pieces {
     const PAWN: usize = 0;
     const BISHOP: usize = 1;
@@ -1926,6 +1609,9 @@ impl Game {
     pub fn get_game_state(&mut self) -> GameState {
         return self.state;
     }
+    pub fn get_turn(&mut self) -> usize {
+        return self.side;
+    }
     pub fn get_possible_moves(&mut self) -> Vec<LocalMove> {
         let tmp = generate_moves(self.move_list, &self);
         let tmp2 = tmp.internal_Move(self);
@@ -2028,7 +1714,7 @@ impl Game {
         let mut fen: String = "".to_owned();
         for rank in 0..8 {
             if rank != 0 {
-                let mut str = "/";
+                let str = "/";
                 fen.push_str(str);
             }
             let mut empty_count = 0;
@@ -2135,10 +1821,7 @@ impl MoveList {
             if (internal_make_move(_move, &mut game) == 0) {
                 continue;
             }
-            // make_move(_move, MoveTypes::AllMoves as usize);
             game.print_board();
-            // print_bitboard(game.bitboards[Pieces::pawn]);
-            // print_bitboard(game.bitboards[Pieces::knight]);
             let mut input: String = String::new();
             io::stdin().read_line(&mut input).expect("Error");
             game.restore_board_from_copy();
@@ -2156,47 +1839,6 @@ impl MoveList {
             game.restore_board_from_copy();
         }
         v
-    }
-    fn Perft(&self, depth: usize, mut game: &mut Game) {
-        if (depth == 0) {
-            game.game_variables.nodes += 1;
-            return;
-        }
-
-        let mut move_list = MoveList::init();
-        move_list = generate_moves(move_list, game);
-        move_list.print();
-        // move_list.Move(&mut game);
-        for i in 0..move_list.count {
-            game.make_board_copy();
-
-            if (internal_make_move(move_list.moves[i], game) == 0) {
-                continue;
-            }
-
-            self.Perft(depth - 1, game);
-            game.restore_board_from_copy();
-        }
-    }
-    fn PerftTest(&self, depth: usize, mut game: &mut Game) {
-        let mut move_list = MoveList::init();
-        move_list = generate_moves(move_list, game);
-        move_list.print();
-
-        // move_list.Move(&mut game);
-        for i in 0..move_list.count {
-            game.make_board_copy();
-            if (internal_make_move(move_list.moves[i], game) == 0) {
-                continue;
-            }
-            let some_nodes: u128 = game.game_variables.nodes;
-            self.Perft(depth - 1, game);
-            let old_nodes: u128 = game.game_variables.nodes - some_nodes;
-            game.restore_board_from_copy();
-
-            move_list.moves[i].print();
-            print!(" |{}\n", old_nodes);
-        }
     }
 }
 
@@ -2262,5 +1904,110 @@ impl LocalMove {
             self.get_move_capture_flag(),
             self.get_move_double_push_flag()
         )
+    }
+}
+
+// --------------------------
+// ######### TESTS ##########
+// --------------------------
+
+#[cfg(test)]
+mod tests {
+    use crate::get_index_of_least_significant_bit;
+    use crate::MoveList;
+
+    use super::Game;
+    use super::GameState;
+    use super::LocalMove;
+    use super::Pieces;
+    use super::SquareLabels;
+
+    // check test framework
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+    // --------------------------
+    // ###### struct Game ######
+    // --------------------------
+    ///Checks the amount if possible moves from the starting board
+    #[test]
+    fn game_moves() {
+        let mut game = Game::new();
+        game.init_bitboard();
+        game.update_occupancy();
+        let moves = game.get_possible_moves();
+        assert_eq!(moves.len(), 20);
+    }
+
+    ///checks that the make_move works
+    #[test]
+    fn game_move() {
+        let mut game = Game::new();
+        game.init_bitboard();
+        game.update_occupancy();
+        game.make_move("E2E4");
+        assert_eq!(
+            (game.bitboards[0] & (1u64 << 36)),
+            (1u64 << SquareLabels::E4 as u64)
+        );
+    }
+    ///check that side begins with WHITE and then changes to BLACK after a move is made
+    #[test]
+    fn game_side() {
+        let mut game = Game::new();
+        game.init_bitboard();
+        game.update_occupancy();
+        let mut side = game.side;
+        assert_eq!(side, 0);
+        game.make_move("E2E4");
+        side = game.side;
+        assert_eq!(side, 1);
+    }
+
+    // check that game state is in progress after initialisation
+    #[test]
+    fn game_in_progress_after_init() {
+        let mut game = Game::new();
+        assert_eq!(game.get_game_state(), GameState::InProgress);
+    }
+    // --------------------------
+    // #### struct LocalMove ####
+    // --------------------------
+
+    ///checks that the encode and decode works
+    #[test]
+    fn localmove() {
+        let mut game = Game::new();
+        game.init_bitboard();
+        game.update_occupancy();
+        let mut _move = LocalMove::init();
+        _move.encode_move(
+            SquareLabels::A7 as usize,
+            SquareLabels::A8 as usize,
+            0,
+            Pieces::QUEEN as usize,
+            0,
+            0,
+        );
+        game.game_variables.move_list.add(_move);
+        let source_sq = _move.get_move_source();
+        let target_sq = _move.get_move_target();
+        let piece = _move.get_move_piece();
+        let promoted = _move.get_move_promoted();
+        let capture_flag = _move.get_move_capture_flag();
+        let double_pawn_push = _move.get_move_double_push_flag();
+        assert_eq!(source_sq, SquareLabels::A7 as usize);
+        assert_eq!(target_sq, SquareLabels::A8 as usize);
+        assert_eq!(piece, Pieces::PAWN as usize);
+        assert_eq!(promoted, Pieces::QUEEN as usize);
+        assert_eq!(capture_flag, 0);
+        assert_eq!(double_pawn_push, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn will_always_fail() {
+        panic!()
     }
 }
